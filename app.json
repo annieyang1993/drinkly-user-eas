@@ -2,7 +2,7 @@
   "expo": {
     "name": "drinkly-user-eas",
     "slug": "drinkly-user-eas",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -17,7 +17,11 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.annieyang1.drinklyusereas",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Enable Camera Acess so that you can record  Videos"
+      }
     },
     "android": {
       "adaptiveIcon": {

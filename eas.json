@@ -1,0 +1,31 @@
+{
+  "cli": {
+    "version": ">= 0.36.1"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      	"cache": {
+			"key": "Invalidate"
+		  }
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "production": {
+      	"cache": {
+			    "key": "Invalidate"
+		    },
+        "ios": {
+          "cocoapods": "1.11.2",
+          "image": "latest"
+        }
+        
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+
+}
