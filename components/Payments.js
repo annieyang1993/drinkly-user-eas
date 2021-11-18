@@ -5,9 +5,7 @@ import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ItemModal from '../pages/ItemModal'
 import {Firebase, db, functions} from '../config/firebase';
-//import stripe from 'tipsi-stripe'
-//import {Stripe, CardField, StripeProvider,useConfirmPayment, useConfirmSetupIntent} from '@stripe/stripe-react-native'
-//import client from '../api_util/mobile_api_util.js';
+import {Stripe, CardField, StripeProvider,useConfirmPayment, useConfirmSetupIntent} from '@stripe/stripe-react-native'
 import { AuthenticatedUserContext } from '../navigation/AuthenticatedUserProvider';
 
 
@@ -19,8 +17,9 @@ export default function Payments(){
     const [cardDetails, setCardDetails] = useState();
     const { confirmPayment, loading } = useConfirmPayment();
     const {confirmSetupIntent} = useConfirmSetupIntent();
+    // const createStripeCheckout = functions.httpsCallable('createStripeCheckout');
+    // const createStripeCustomer = functions.httpsCallable('createStripeCustomer');
     const createStripeCheckout = functions.httpsCallable('createStripeCheckout');
-    const createStripeCustomer = functions.httpsCallable('createStripeCustomer');
     const { user } = useContext(AuthenticatedUserContext);
 
     // const paymentRequest= async ()=>{
@@ -70,7 +69,8 @@ export default function Payments(){
     // });
 
     const handleSubmit=async(e)=>{
-        const response = await createStripeCustomer();
+        const response = await createStripeCheckout();
+        console.log(response);
     }
 
 
