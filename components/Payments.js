@@ -5,9 +5,9 @@ import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ItemModal from '../pages/ItemModal'
 import {Firebase, db, functions} from '../config/firebase';
-import stripe from 'tipsi-stripe'
+//import stripe from 'tipsi-stripe'
 //import {Stripe, CardField, StripeProvider,useConfirmPayment, useConfirmSetupIntent} from '@stripe/stripe-react-native'
-import client from '../api_util/mobile_api_util.js';
+//import client from '../api_util/mobile_api_util.js';
 import { AuthenticatedUserContext } from '../navigation/AuthenticatedUserProvider';
 
 
