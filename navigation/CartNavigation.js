@@ -9,6 +9,7 @@ import Search from '../pages/Search'
 import Cart from '../components/Cart'
 import CartRestaurantPage from '../pages/CartRestaurantModal'
 import Checkout from '../components/Checkout'
+import PaymentMethods from '../pages/PaymentsList'
 
 export default function CartNavigation({route}){
     const Stack = createStackNavigator();

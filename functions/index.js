@@ -1,36 +1,25 @@
-const functions = require("firebase-functions");
+'use strict';
 
-// // Create and Deploy Your First Cloud Functions
-// // https://firebase.google.com/docs/functions/write-firebase-functions
-//
-// exports.helloWorld = functions.https.onRequest((request, response) => {
-//   functions.logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+const functions = require('firebase-functions');
+const admin = require('firebase-admin');
+admin.initializeApp();
+const { Logging } = require('@google-cloud/logging');
+const logging = new Logging({
+  projectId: process.env.GCLOUD_PROJECT,
+});
+const stripe = require("stripe")(functions.config().stripe.secret);
+
+exports.helloWorld = functions.https.onRequest((request, response) => {
+  functions.logger.info("Hello logs!", {structuredData: true});
+  response.send({"data": "Hello from Firebase!"});
+});
 
 
-exports.createStripeCheckout = functions.https.onCall(async (data, context)=>{
-    const stripe = require("stripe")(functions.config().stripe.secret_key);
-    const session = await stripe.checkout.sessions.create({
-        payment_method_types: ["card"],
-        mode: "payment",
-        succcess_url: "http://localhost:3000/success",
-        cancel_url: "http://localhost:3000/cancel",
-        line_items: [
-            {
-                quantity: 1,
-                price_data: {
-                    currency: "usd",
-                    unit_amount: (100) * 100,
-                    product_data: {
-                        name: "New camera"
-                    }
-                }
-            }
-        ]
+exports.createSetupIntent = functions.https.onRequest(async (request, response) => {
+    const data = await stripe.setupIntents.create({
+        customer: request.body.customer_id
     });
-
-    return {
-        id: session.id
-    }
+    response.send(data);
+    //response.send(data)
 })
+

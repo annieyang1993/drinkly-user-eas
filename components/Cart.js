@@ -29,6 +29,13 @@ export default function Cart({route}){
     const [editModal, setEditModal] = useState(false);
     const [cartModal, setCartModal] = useState(true);
 
+
+
+    const [paymentSelected, setPaymentSelected] = useState(false);
+    const [paymentMethod, setPaymentMethod] = 
+    useState(authContext.userData.drinkly_cash===undefined || authContext.userData.drinkly_cash < authContext.rounded(authContext.cartSubTotal*1.13+0.15).toFixed(2) ? (authContext.userData.defaultCard === undefined ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash')
+    const [icon, setIcon] = useState(authContext.userData.drinkly_cash===undefined || authContext.userData.drinkly_cash < authContext.rounded(authContext.cartSubTotal*1.13+0.15).toFixed(2) ? (authContext.userData.defaultCard === undefined ? '' : 'credit-card') : 'cash')
+
     const roundTwo=(number)=>{
         const split = String(number).split('.')
     }
@@ -307,6 +314,7 @@ const setWeekdayAndTimeArrays = async ()=>{
             <View style={{width: '60%'}}></View>
             <Text style={{width: '20%', alignSelf: 'flex-end', textAlign: 'right', fontSize: 15, fontWeight: 'bold', marginTop: 10, marginBottom: 20}}>${authContext.rounded(item["total_price"]*item["quantity"]).toFixed(2)}</Text>
             </View>
+
             </View>
             )
 
@@ -318,10 +326,10 @@ const setWeekdayAndTimeArrays = async ()=>{
                 <Text style={{marginBottom: 5, color: 'gray', marginTop: 5}}>Select a payment method</Text>
                 
                 <View style={{borderBottomWidth: 0.5, borderColor: 'gray', padding: 5, marginVertical: 10, width: '100%'}}>
-                    <TouchableOpacity style={{flexDirection: 'row'}} onPress={()=>navigation.navigate("Payments")}>
-                    <MaterialCommunityIcons name="cash" size={17} color={'gray'}/>
-                    <Text style={{color: 'gray', marginLeft: 10}}>
-                        Drinkly cash
+                    <TouchableOpacity style={{flexDirection: 'row'}} onPress={()=>navigation.navigate("Payment Methods")}>
+                    <MaterialCommunityIcons name={icon} size={17} color={'gray'}/>
+                    <Text style={{color: 'gray', marginLeft: paymentMethod === 'Please select a payment method' ? 0 : 10}}>
+                        {paymentMethod}
                     </Text>
                     <MaterialCommunityIcons name="chevron-right" size={17} style={{right: 0, position: 'absolute', color: 'gray'}}/>
                      </TouchableOpacity>
@@ -334,15 +342,18 @@ const setWeekdayAndTimeArrays = async ()=>{
             <View style={{paddingHorizontal: 10}}>
                 <View style={{flexDirection: 'row', width: '100%', marginTop: 10, color: 'gray'}}>
                     <Text style={{ marginTop: 20, color: 'gray'}}>Subtotal</Text>
+                    <MaterialCommunityIcons name="information-outline" style={{marginTop: 20, color: 'gray', marginLeft: 10}}/>
                     <Text style={{ marginTop: 20, position: 'absolute', right: 0, color: 'gray'}}>${authContext.rounded(authContext.cartSubTotal).toFixed(2)}</Text>
                 </View>
                 <View style={{flexDirection: 'row', width: '100%', color: 'gray'}}>
                     
                     <Text style={{marginTop: 5, color: 'gray'}}>Estimated taxes</Text>
+                    <MaterialCommunityIcons name="information-outline" style={{marginTop: 5, color: 'gray', marginLeft: 10}}/>
                     <Text style={{marginTop: 5, color: 'gray', position: 'absolute', right: 0}}>${authContext.taxes.toFixed(2)}</Text> 
                 </View>
                 <View style={{flexDirection: 'row', width: '100%', color: 'gray', borderBottomWidth: 0.5, borderBottomColor: 'gray', paddingBottom: 10}}>
                     <Text style={{marginTop: 5, color: 'gray'}}>Service fee</Text>
+                    <MaterialCommunityIcons name="information-outline" style={{marginTop: 5, color: 'gray', marginLeft: 10}}/>
                     <Text style={{marginTop: 5, color: 'gray', position: 'absolute', right: 0}}>${0.15}</Text>
                 </View>
 

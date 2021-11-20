@@ -13,6 +13,7 @@
     "@react-navigation/native": "^6.0.6",
     "@react-navigation/stack": "^6.0.11",
     "@stripe/stripe-react-native": "0.2.2",
+    "babel-runtime": "^6.26.0",
     "cli": "^1.0.1",
     "cocoapods": "^0.0.0",
     "eas-cli": "^0.36.1",
@@ -21,16 +22,18 @@
     "expo-modules-autolinking": "^0.3.4",
     "expo-status-bar": "~1.1.0",
     "firebase": "^8.10.0",
+    "firebase-tools": "^9.22.0",
     "geolib": "^3.3.3",
     "react": "17.0.1",
     "react-dom": "17.0.1",
-    "react-native": "0.64.3",
+    "react-native": "^0.64.3",
     "react-native-geocoding": "^0.5.0",
     "react-native-gesture-handler": "~1.10.2",
     "react-native-safe-area-context": "3.3.2",
     "react-native-web": "0.17.1",
     "react-native-wheel-scroll-picker": "^0.2.4",
-    "styled-components": "^5.3.3"
+    "styled-components": "^5.3.3",
+    "tipsi-stripe": "^9.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9"

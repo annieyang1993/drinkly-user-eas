@@ -17,13 +17,15 @@ import Checkout from '../components/Checkout'
 import Payments from '../components/Payments'
 import Receipt from '../components/Receipt'
 import CartRestaurantPage from '../pages/CartRestaurantModal'
+import CreditCard from '../components/CardPage'
+
 //Navigators
 import HomeNavigation from './HomeNavigation'
 import PointsNavigation from './PointsNavigation'
 import SearchNavigation from './SearchNavigation'
 import OrderNavigation from './OrderNavigation'
 import AccountNavigation from './AccountNavigation'
-
+import PaymentMethods from '../pages/PaymentsList'
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -128,6 +130,7 @@ export default function HomeStack(){
     const [discountCode, setDiscountCode] = useState('')
     const [discount,setDiscount] = useState(0)
     const [tip, setTip] = useState(0);
+    const [paymentMethods, setPaymentMethods] = useState([])
 
     const navigation = useNavigation();
     const Stack = createStackNavigator();
@@ -163,6 +166,15 @@ export default function HomeStack(){
         setSavedRestaurants(savedRestaurantsTemp);
         setSavedRestaurantsObject(savedRestaurantsObjectTemp);
 
+    }
+
+    const getPayments = async () => {
+        const paymentsTemp = await Firebase.firestore().collection('users').doc(user.uid).collection('payment_methods').get();
+        const paymentsTempArray = []
+        paymentsTemp.docs.map((payment, i)=>{
+            paymentsTempArray.push(payment.data());
+        })
+        await setPaymentMethods(paymentsTempArray);
     }
 
 
@@ -237,6 +249,7 @@ export default function HomeStack(){
         getLocation();
         getOrders();
         getPoints();
+        getPayments();
 
 
 
@@ -669,7 +682,8 @@ export default function HomeStack(){
     taxes, setTaxes, serviceFee, setServiceFee, drinklyCash, setDrinklyCash, userData, setUserData,
     dayIndex, setDayIndex, timeIndex, setTimeIndex, orderList, setOrderList, pointsList, setPointsList, locationSet, setLocationSet,
     search, setSearch, discounts, setDiscounts, savedRestaurants, setSavedRestaurants, savedRestaurantsObject, setSavedRestaurantsObject,
-    quickCheckoutList, setQuickCheckoutList, quickCheckoutObject, setQuickCheckoutObject, tip, setTip, discount, setDiscount, discountCode, setDiscountCode, rounded}}>
+    quickCheckoutList, setQuickCheckoutList, quickCheckoutObject, setQuickCheckoutObject, tip, setTip, discount, setDiscount, 
+    discountCode, setDiscountCode, rounded, paymentMethods, setPaymentMethods}}>
         <Stack.Navigator style={{height: '90%'}}>
             <Stack.Screen 
                     name="Tabs" 
@@ -678,8 +692,11 @@ export default function HomeStack(){
             <Stack.Screen name="Cart" component={Cart} options={{headerMode: 'none'}}/>
             <Stack.Screen name="Cart Restaurant Page" component={CartRestaurantPage} options={{headerMode: 'none'}}/>
             <Stack.Screen name="Checkout" component={Checkout} options={{headerMode: 'none'}}/>
-            <Stack.Screen name="Payments" component={Payments} options={{headerMode: 'none'}}/>
+            <Stack.Screen name="Add Payment" component={Payments} options={{headerMode: 'none'}}/>
             <Stack.Screen name="Receipt" component={Receipt} options={{headerMode: 'none'}}/>
+            <Stack.Screen name="Payment Methods" options={{title: ""}} component={PaymentMethods} options={{headerMode: 'none'}}/>     
+            <Stack.Screen name="Credit Card" options={{title: ""}} component={CreditCard} options={{headerMode: 'none'}}/>          
+
         </Stack.Navigator>
 
     </AuthContext.Provider>)

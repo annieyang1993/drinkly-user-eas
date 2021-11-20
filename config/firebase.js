@@ -19,10 +19,16 @@ let Firebase;
 let db;
 let functions;
 
-console.log(firebase);
 
+if (firebase.apps.length === 0) {
   Firebase = firebase.initializeApp(firebaseConfig);
-  //functions = firebase.functions(Firebase);
+  functions = firebase.functions(Firebase);
+} else{
+  firebase.app()
+}
+  
+
+//}
 
 export {Firebase, db, functions}
 

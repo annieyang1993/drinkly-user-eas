@@ -5,9 +5,9 @@ import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ItemModal from '../pages/ItemModal'
 import {Firebase, db, functions} from '../config/firebase';
-import {Stripe, CardField, StripeProvider,useConfirmPayment, useConfirmSetupIntent} from '@stripe/stripe-react-native'
+import {Stripe, CardField, StripeProvider,useConfirmPayment, useConfirmSetupIntent, createToken, createPaymentMethod} from '@stripe/stripe-react-native'
 import { AuthenticatedUserContext } from '../navigation/AuthenticatedUserProvider';
-
+import stripe from 'tipsi-stripe'
 
 export default function Payments(){
     const authContext = useContext(AuthContext);
@@ -20,6 +20,7 @@ export default function Payments(){
     // const createStripeCheckout = functions.httpsCallable('createStripeCheckout');
     // const createStripeCustomer = functions.httpsCallable('createStripeCustomer');
     const createStripeCheckout = functions.httpsCallable('createStripeCheckout');
+    const createEphemeralKey = functions.httpsCallable('createEphemeralKey')
     const { user } = useContext(AuthenticatedUserContext);
 
     // const paymentRequest= async ()=>{
@@ -69,8 +70,45 @@ export default function Payments(){
     // });
 
     const handleSubmit=async(e)=>{
-        const response = await createStripeCheckout();
-        console.log(response);
+        await createEphemeralKey().then(async (response)=>{
+            console.log(JSON.stringify(response))
+        });
+
+    }
+
+    //Create setup intent on backend and returns the client secret to use within confirmSetupIntent
+    const getClientSecret = async () => {
+        const response = await fetch('https://us-central1-drinkly-user.cloudfunctions.net/createSetupIntent', {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                customer_id: authContext.userData.stripeId
+            })
+        })
+        const responseJson = await response.json();
+        const {setupIntent, error} = await confirmSetupIntent(responseJson.client_secret, {
+            type: 'Card',
+            billingDetails: {cardholder}
+        })
+        if (error){
+            console.log(error);
+        } else{
+            console.log(setupIntent.paymentMethodId);
+            console.log(cardDetails);
+            await Firebase.firestore().collection('users').doc(authContext.user.uid).collection('payment_methods').doc(`${cardDetails.brand}-${cardDetails.expiryYear}-${cardDetails.last4}`).set({
+                payment_id: setupIntent.paymentMethodId,
+                brand: cardDetails.brand,
+                expiryMonth: cardDetails.expiryMonth,
+                expiryYear: cardDetails.expiryYear,
+                postalCode: cardDetails.postalCode,
+                lastFour: cardDetails.last4
+         
+            })
+        }
+
     }
 
 
@@ -81,6 +119,7 @@ export default function Payments(){
                 <StripeProvider merchantIdentifier="merchant.identifier"
                     publishableKey={"pk_test_51JZinFLzDwIJCChhuq8DoRCrStqSktqj22guQPw1NaReIUa97QsONeJrOCdiKsxVq7nSapVfsXYFwxdzueG9PRgX00Ru6vfnBu"}>
                     <View style={styles.container}>
+                        {console.log(authContext.userData)}
                     <TextInput
                     autoCapitalize='none'
                     placeholder='Cardholder Name'
@@ -99,7 +138,7 @@ export default function Payments(){
                     />
                     {errorBool ? <Text>Card error, please try again.</Text> : <Text></Text>}
                     
-                    <Button onPress={handleSubmit} title="Add Card"/>
+                    <Button onPress={()=>getClientSecret()} title="Add Card"/>
                 
                     
                 </View>

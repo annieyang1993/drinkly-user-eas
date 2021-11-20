@@ -1,0 +1,7 @@
+{
+  "stripe": {
+    "secret_key": "sk_test_51JZinFLzDwIJCChhYxbOCZa7nRavX2k6kd11VKKHmgArctNNavgQzKoYaUX4a40DjYq6hZzPBU8V1mWmklUJIHm100Tjif6QvL",
+    "webhooksecret": "whsec_OUCXf5DDhAFsYaftVhhfqmKIZr1TVAiD",
+    "secret": "sk_test_51JZinFLzDwIJCChhYxbOCZa7nRavX2k6kd11VKKHmgArctNNavgQzKoYaUX4a40DjYq6hZzPBU8V1mWmklUJIHm100Tjif6QvL"
+  }
+}

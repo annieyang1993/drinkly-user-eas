@@ -43,9 +43,9 @@ export default function SignupScreen({ navigation }) {
   const onHandleSignup = async () => {
     try {
       if (email !== '' && password !== '' && firstName !=='' && lastName !=='' && number!=='') {
-        await auth.createUserWithEmailAndPassword(email, password)
+        auth.createUserWithEmailAndPassword(email, password)
         .then(function(cred){
-          Firebase.firestore().collection('users').doc(`${cred.user.uid}`).set({firstName: firstName, lastName: lastName, number: number, email: email}).then(()=>{
+          Firebase.firestore().collection('users').doc(`${cred.user.uid}`).set({firstName: firstName, lastName: lastName, number: number, email: email}, {merge: true}).then(()=>{
           })
         });
       }
