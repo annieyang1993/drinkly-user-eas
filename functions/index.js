@@ -23,3 +23,14 @@ exports.createSetupIntent = functions.https.onRequest(async (request, response) 
     //response.send(data)
 })
 
+exports.createCharge = functions.https.onRequest(async (request, response) => {
+  const data = await stripe.paymentIntents.create({
+    amount: request.body.amount*100,
+    customer: request.body.customer_id,
+    payment_method: request.body.payment_id,
+    currency: 'CAD',
+    confirm: true
+  });
+  response.send(data);
+})
+

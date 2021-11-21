@@ -7,6 +7,7 @@ import InputField from '../components/InputField'
 
 export default function PaymentMethods({navigation}){
     const authContext = useContext(AuthContext);
+    const [creditCardModal, setCreditCardModal] = useState(false);
 
     return(
         <View style={{height: Dimensions.get("screen").height, width: '100%', marginTop: 'auto', backgroundColor: 'white'}}>
@@ -16,11 +17,11 @@ export default function PaymentMethods({navigation}){
                 <View style={{width: '95%', alignSelf: 'center'}}>
                     <View style={{width: '100%', flexDirection: 'row'}}>
                         <Text style={{fontSize: 16, fontWeight: 'bold'}}>Drinkly Cash</Text>
-                        <TouchableOpacity style={{position: 'absolute', right: 0}}>
+                        <TouchableOpacity style={{position: 'absolute', right: 0}} onPress={()=>navigation.navigate("Drinkly Cash")}>
                             <Text style={{color: 'gray'}}>+ Add Drinkly Cash</Text>
                         </TouchableOpacity>
                     </View>
-                    <Text style={{alignSelf: 'center', color: '#a7a9a9', fontSize: 40, fontWeight: '400', marginTop: 20, width: '95%', textAlign: 'center', paddingVertical: 20, borderRadius: 15}}>${authContext.userData.drinkly_cash === undefined ? 0 : authContext.userData.drinkly_cash}</Text>
+                    <Text style={{alignSelf: 'center', color: '#a7a9a9', fontSize: 40, fontWeight: '400', marginTop: 20, width: '95%', textAlign: 'center', paddingVertical: 20, borderRadius: 15}}>${authContext.drinklyCashAmount === undefined ? 0 : authContext.drinklyCashAmount}</Text>
                     <View style={{width: '100%', flexDirection: 'row', marginTop: 20, marginBottom: 20}}>
                         <Text style={{fontSize: 16, fontWeight: 'bold'}}>Credit Cards</Text>
                     </View>
@@ -28,10 +29,13 @@ export default function PaymentMethods({navigation}){
                     {authContext.paymentMethods.map((payment, i)=>{
                         return (
                             <View key={i} style={{width: '100%', borderBottomWidth: 1, borderBottomColor: 'lightgray'}}>
-                                <TouchableOpacity style={{width: '100%', flexDirection: 'row', padding: 5}} onPress={()=>{navigation.navigate("Credit Card", {card: payment})}}>
+                                <TouchableOpacity style={{width: '100%', flexDirection: 'row', padding: 5, paddingVertical: 10}} onPress={()=>{navigation.navigate("Credit Card", {card: payment})}}>
                                     <Text>{payment["brand"]} ending in {payment["lastFour"]}</Text>
-                                    <MaterialCommunityIcons name="check" size={20} color='green' style={{position: 'absolute', right: 10, marginRight: 10}}/>
-                                    <MaterialCommunityIcons name="chevron-right" size={20} color='gray' style={{position: 'absolute', right: 0}}/>
+                                    {
+                                        payment.payment_id === authContext.defaultPaymentId ? <MaterialCommunityIcons name="check" size={20} color='green' style={{position: 'absolute', right: 10, marginTop: 10, marginRight: 10}}/> : null
+                                    }
+                                    
+                                    <MaterialCommunityIcons name="chevron-right" size={20} color='gray' style={{position: 'absolute', right: 0, marginTop: 10}}/>
                                 </TouchableOpacity>
                             </View>
                         )
@@ -41,7 +45,7 @@ export default function PaymentMethods({navigation}){
                         <Text style={{color: 'gray'}}>+ Add Card</Text>
                     </TouchableOpacity>
                 </View>
-
+                {console.log(authContext.userData)}
                 
             </ScrollView>
 

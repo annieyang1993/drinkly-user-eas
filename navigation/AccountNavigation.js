@@ -9,6 +9,7 @@ import AccountPage from '../pages/AccountPage'
 import PersonalInformation from '../pages/PersonalInformation'
 import Location from '../pages/Location'
 import Payments from '../components/Payments'
+import PaymentMethods from '../pages/PaymentsList'
 
 export default function OrderNavigation(){
     const authContext = useContext(AuthContext);
@@ -22,6 +23,8 @@ export default function OrderNavigation(){
             <Stack.Screen style={{backgroundColor: 'white'}} name="Personal Information" component={PersonalInformation} options={{ title: "", headerTintColor: '#545555', headerStyle: {backgroundColor: '#f0f0f0'}, backgroundColor: 'white'}}/>
             <Stack.Screen style={{backgroundColor: 'white'}} name="Location" component={Location} options={{ title: "", headerTintColor: '#545555', headerStyle: {backgroundColor: '#f0f0f0'}, backgroundColor: 'white'}}/>
             <Stack.Screen style={{backgroundColor: 'white'}} name="Payments" component={Payments} options={{ title: "", headerTintColor: '#545555', headerStyle: {backgroundColor: '#f0f0f0'}, backgroundColor: 'white'}}/>
+            <Stack.Screen style={{backgroundColor: 'white'}} name="Payment Methods" component={PaymentMethods} options={{ title: "", headerTintColor: '#545555', headerStyle: {backgroundColor: '#f0f0f0'}, backgroundColor: 'white'}}/>
+        
         </Stack.Navigator>
         </View> 
     )

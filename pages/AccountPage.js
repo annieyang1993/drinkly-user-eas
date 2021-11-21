@@ -49,7 +49,7 @@ export default function AccountPage({navigation}){
               </View>
 
               <View style={{height: 70, borderBottomWidth: 1, borderBottomColor: 'lightgray'}}>
-                <TouchableOpacity style={{flexDirection: 'row', marginTop: 20}} onPress={()=>{navigation.navigate("Payments")}}>
+                <TouchableOpacity style={{flexDirection: 'row', marginTop: 20}} onPress={()=>{navigation.navigate("Payment Methods")}}>
                   <View>
                   <Text style={{fontWeight: '500'}}>Payment</Text>
                   <Text style={{fontSize: 11, color: 'gray'}}>Edit your payment methods and manage Drinkly Cash</Text>

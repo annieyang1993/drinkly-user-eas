@@ -18,6 +18,7 @@ import Payments from '../components/Payments'
 import Receipt from '../components/Receipt'
 import CartRestaurantPage from '../pages/CartRestaurantModal'
 import CreditCard from '../components/CardPage'
+import DrinklyCash from '../components/DrinklyCash'
 
 //Navigators
 import HomeNavigation from './HomeNavigation'
@@ -117,6 +118,7 @@ export default function HomeStack(){
     const [taxes, setTaxes] = useState(0);
     const [serviceFee, setServiceFee] = useState(0);
     const [drinklyCash, setDrinklyCash] = useState(false);
+    const [drinklyCashAmount, setDrinklyCashAmount] = useState(0);
     const [dayIndex, setDayIndex] = useState(0);
     const [timeIndex, setTimeIndex] = useState(0);
     const [orderList, setOrderList] = useState([])
@@ -131,6 +133,7 @@ export default function HomeStack(){
     const [discount,setDiscount] = useState(0)
     const [tip, setTip] = useState(0);
     const [paymentMethods, setPaymentMethods] = useState([])
+    const [defaultPaymentId, setDefaultPaymentId] = useState('');
 
     const navigation = useNavigation();
     const Stack = createStackNavigator();
@@ -196,7 +199,10 @@ export default function HomeStack(){
     const getUser = async () =>{
         const userTemp = await Firebase.firestore().collection('users').doc(user.uid).get()
         setUserData(userTemp.data());
+        setDefaultPaymentId(userTemp.data().default_payment_id);
+        setDrinklyCashAmount(userTemp.data().drinkly_cash);
         return userTemp.data();
+        
     }
 
     const getSaved = async () => {
@@ -683,7 +689,8 @@ export default function HomeStack(){
     dayIndex, setDayIndex, timeIndex, setTimeIndex, orderList, setOrderList, pointsList, setPointsList, locationSet, setLocationSet,
     search, setSearch, discounts, setDiscounts, savedRestaurants, setSavedRestaurants, savedRestaurantsObject, setSavedRestaurantsObject,
     quickCheckoutList, setQuickCheckoutList, quickCheckoutObject, setQuickCheckoutObject, tip, setTip, discount, setDiscount, 
-    discountCode, setDiscountCode, rounded, paymentMethods, setPaymentMethods}}>
+    discountCode, setDiscountCode, rounded, paymentMethods, setPaymentMethods, defaultPaymentId, setDefaultPaymentId,
+    drinklyCashAmount, setDrinklyCashAmount}}>
         <Stack.Navigator style={{height: '90%'}}>
             <Stack.Screen 
                     name="Tabs" 
@@ -695,7 +702,8 @@ export default function HomeStack(){
             <Stack.Screen name="Add Payment" component={Payments} options={{headerMode: 'none'}}/>
             <Stack.Screen name="Receipt" component={Receipt} options={{headerMode: 'none'}}/>
             <Stack.Screen name="Payment Methods" options={{title: ""}} component={PaymentMethods} options={{headerMode: 'none'}}/>     
-            <Stack.Screen name="Credit Card" options={{title: ""}} component={CreditCard} options={{headerMode: 'none'}}/>          
+            <Stack.Screen name="Credit Card" options={{title: ""}} component={CreditCard} options={{headerMode: 'none'}}/>     
+            <Stack.Screen name="Drinkly Cash" options={{title: ""}} component={DrinklyCash} options={{headerMode: 'none'}}/>      
 
         </Stack.Navigator>
 

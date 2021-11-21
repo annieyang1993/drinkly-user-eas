@@ -7,7 +7,7 @@ import ItemModal from '../pages/ItemModal'
 import {Firebase, db, functions} from '../config/firebase';
 import {Stripe, CardField, StripeProvider,useConfirmPayment, useConfirmSetupIntent, createToken, createPaymentMethod} from '@stripe/stripe-react-native'
 import { AuthenticatedUserContext } from '../navigation/AuthenticatedUserProvider';
-import stripe from 'tipsi-stripe'
+
 
 export default function Payments(){
     const authContext = useContext(AuthContext);
@@ -15,12 +15,13 @@ export default function Payments(){
     const errorBool = false;
     const [cardholder, setCardholder] = useState();
     const [cardDetails, setCardDetails] = useState();
-    const { confirmPayment, loading } = useConfirmPayment();
+    const { confirmPayment } = useConfirmPayment();
     const {confirmSetupIntent} = useConfirmSetupIntent();
     // const createStripeCheckout = functions.httpsCallable('createStripeCheckout');
     // const createStripeCustomer = functions.httpsCallable('createStripeCustomer');
     const createStripeCheckout = functions.httpsCallable('createStripeCheckout');
     const createEphemeralKey = functions.httpsCallable('createEphemeralKey')
+    const [loading, setLoading] = useState(false);
     const { user } = useContext(AuthenticatedUserContext);
 
     // const paymentRequest= async ()=>{
@@ -78,6 +79,7 @@ export default function Payments(){
 
     //Create setup intent on backend and returns the client secret to use within confirmSetupIntent
     const getClientSecret = async () => {
+        await setLoading(true);
         const response = await fetch('https://us-central1-drinkly-user.cloudfunctions.net/createSetupIntent', {
             method: 'POST',
             headers: {
@@ -96,8 +98,6 @@ export default function Payments(){
         if (error){
             console.log(error);
         } else{
-            console.log(setupIntent.paymentMethodId);
-            console.log(cardDetails);
             await Firebase.firestore().collection('users').doc(authContext.user.uid).collection('payment_methods').doc(`${cardDetails.brand}-${cardDetails.expiryYear}-${cardDetails.last4}`).set({
                 payment_id: setupIntent.paymentMethodId,
                 brand: cardDetails.brand,
@@ -107,8 +107,33 @@ export default function Payments(){
                 lastFour: cardDetails.last4
          
             })
-        }
+            const paymentsTemp = authContext.paymentMethods.map((x)=>x);
+            paymentsTemp.unshift({
+                payment_id: setupIntent.paymentMethodId,
+                brand: cardDetails.brand,
+                expiryMonth: cardDetails.expiryMonth,
+                expiryYear: cardDetails.expiryYear,
+                postalCode: cardDetails.postalCode,
+                lastFour: cardDetails.last4
+            })
 
+            authContext.setPaymentMethods(paymentsTemp);
+
+            await Firebase.firestore().collection('users').doc(authContext.user.uid).set({
+                default_payment_id: setupIntent.paymentMethodId,
+                default_brand: cardDetails.brand,
+                default_lastFour: cardDetails.last4
+            }, {merge: true});
+
+            const userDataTemp = authContext.userData;
+            userDataTemp["default_payment_id"] = setupIntent.paymentMethodId;
+            userDataTemp["default_brand"] = cardDetails.brand;
+            userDataTemp["default_lastFour"]  = cardDetails.last4
+            await authContext.setUserData(userDataTemp);
+            await authContext.setDefaultPaymentId(setupIntent.paymentMethodId);
+           
+        }
+         await setLoading(false);
     }
 
 
@@ -138,7 +163,7 @@ export default function Payments(){
                     />
                     {errorBool ? <Text>Card error, please try again.</Text> : <Text></Text>}
                     
-                    <Button onPress={()=>getClientSecret()} title="Add Card"/>
+                    <Button disabled = {loading} onPress={()=>getClientSecret()} title="Add Card"/>
                 
                     
                 </View>
@@ -146,6 +171,7 @@ export default function Payments(){
                 </StripeProvider> 
             </ScrollView>
             <TouchableOpacity
+                disabled = {loading}
                 style={{backgroundColor: 'white',
                 borderRadius: 10,
                 width: 20,

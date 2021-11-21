@@ -22,6 +22,49 @@ export default function CardPage({route}){
     const createEphemeralKey = functions.httpsCallable('createEphemeralKey')
     const { user } = useContext(AuthenticatedUserContext);
 
+    const deleteCard = async() =>{
+        await Firebase.firestore().collection('users').doc(user.uid).collection('payment_methods').doc(`${route.params.card.brand}-${route.params.card.expiryYear}-${route.params.card.lastFour}`).delete();
+        const paymentsTemp = authContext.paymentMethods.map((x)=>x);
+        var cardIndex = 0;
+        paymentsTemp.map((payment, i)=>{
+            if (payment["brand"]===route.params.card.brand && payment["expiryYear"]===route.params.card.expiryYear && payment["lastFour"]===route.params.card.lastFour){
+                cardIndex = i;
+            }
+        })
+        await paymentsTemp.splice(cardIndex, 1);
+        await authContext.setPaymentMethods(paymentsTemp);
+
+        if (route.params.card.payment_id === authContext.defaultPaymentId){
+            await Firebase.firestore().collection('users').doc(authContext.user.uid).set({
+                default_payment_id: null,
+                default_brand: null,
+                default_lastFour: null
+            }, {merge: true});
+            const userDataTemp = authContext.userData;
+            delete userDataTemp["default_payment_id"];
+            delete userDataTemp["default_brand"];
+            delete userDataTemp["default_lastFour"];
+            await authContext.setUserData(userDataTemp);
+            await authContext.setDefaultPaymentId();
+        }
+    }
+
+    const makeDefault = async() =>{
+        await Firebase.firestore().collection('users').doc(authContext.user.uid).set({
+                default_payment_id: route.params.card.payment_id,
+                default_brand: route.params.card.brand,
+                default_lastFour: route.params.card.lastFour
+            }, {merge: true});
+
+        const userDataTemp = authContext.userData;
+        userDataTemp["default_payment_id"] = route.params.card.payment_id;
+        userDataTemp["default_brand"] = route.params.card.brand;
+        userDataTemp["default_lastFour"]  = route.params.card.lastFour;
+        await authContext.setUserData(userDataTemp);
+        await authContext.setDefaultPaymentId(route.params.card.payment_id);
+
+    }
+
     return(
         <View style={{backgroundColor: 'white'}}>
             <ScrollView showsVerticalScrollIndicator={false} style={{height: Dimensions.get("screen").height, backgroundColor: 'white', paddingTop: 80}}>
@@ -30,15 +73,22 @@ export default function CardPage({route}){
                     shadowOffset: {width: 3, height: 3}, 
                     shadowRadius: 10, 
                     shadowOpacity: 0.3}}>
-                    <Text style={{alignSelf: 'center', fontSize: 17, fontWeight: '500', margin: 10, marginTop: 25}}>{route.params.card.brand}</Text>
-                    <Text style={{alignSelf: 'center', fontSize: 20, fontWeight: 'bold', margin: 10}}>* * * *  * * * *  * * * * {route.params.card.lastFour}</Text>
+                    <View style={{flexDirection: 'row', alignSelf: 'center'}}>
+                        <Text style={{alignSelf: 'center', fontSize: 17, fontWeight: '500', margin: 10, marginTop: 25}}>{route.params.card.brand}</Text>
+                        {route.params.card.payment_id === authContext.defaultPaymentId ?
+                        <MaterialCommunityIcons name="check-circle" color='green' size={20} style={{marginTop: 25}}/> : null}
+                    </View>
+
+
+                    <Text style={{alignSelf: 'center', fontSize: 20, fontWeight: '600', margin: 10}}>* * * *  * * * *  * * * *  {route.params.card.lastFour}</Text>
                     <Text style={{alignSelf: 'center', margin: 10, fontSize: 15}}>Expiring {route.params.card.expiryMonth}/{route.params.card.expiryYear}</Text>
                     <View style={{flexDirection: 'row'}}>
-                        <TouchableOpacity style={{margin: 25, color: 'gray'}}>
+                        {route.params.card.payment_id === authContext.defaultPaymentId ? <Text style={{margin: 25, color: 'lightgray'}}>Make default</Text> :
+                        <TouchableOpacity style={{margin: 25, color: 'gray'}} onPress={()=>{makeDefault()}}>  
                             <Text style={{color: 'gray'}}>Make default</Text>
-                        </TouchableOpacity>
+                        </TouchableOpacity> }
 
-                        <TouchableOpacity style={{margin: 25, position: 'absolute', right: 0}}>
+                        <TouchableOpacity style={{margin: 25, position: 'absolute', right: 0}} onPress={async ()=>{deleteCard().then(()=>navigation.pop(1))}}>
                             <Text style={{color: 'gray'}}>Delete card</Text>
                         </TouchableOpacity>
                     </View>
