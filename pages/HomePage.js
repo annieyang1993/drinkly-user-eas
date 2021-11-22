@@ -223,11 +223,18 @@ export default function HomeNavigation({navigation}){
                 })}
                                         </View> }
                 </View> */}
+                <View>
 
                 <Text style={{fontWeight: 'bold', fontSize: 17, marginBottom: 10, marginHorizontal: 20, marginTop: 20}}>Saved cafes
                 </Text>
 
-                {authContext.savedRestaurants.length === 0 ? <Text style={{marginHorizontal: 20, color: 'gray'}}>Save restaurants to see here.</Text> : 
+                {authContext.savedRestaurants.length === 0 ? 
+                
+                <View>
+                
+                <Image style = {{width: '70%', resizeMode: 'contain', alignSelf: 'center', marginTop: 0, maxHeight: 300, opacity: 0.2, marginTop: 50}} source={require("../assets/home-page-icon.png")}/>
+                <Text style={{marginHorizontal: 20, color: 'gray', fontSize: 15, alignSelf: 'center', opacity: 0.7}}>Save restaurants to see here.</Text> 
+                </View>: 
                 <View>
                     {authContext.savedRestaurants.map((name, j)=>{
                         if (authContext.savedRestaurantsObject[name]!==undefined){
@@ -264,6 +271,7 @@ export default function HomeNavigation({navigation}){
                 </View>
                     
                 </View>}
+                </View>
 
             </ScrollView>
             </View>

@@ -81,6 +81,9 @@ export default function Receipt(){
                     authContext.setDrinklyCash(false);
                     authContext.setDayIndex(0);
                     authContext.setTimeIndex(0);
+                    authContext.setTip(0);
+        
+
                     getOrders();
 
                     navigation.dispatch(CommonActions.reset({index: 0, routes:[{name: 'Search2'}]}))

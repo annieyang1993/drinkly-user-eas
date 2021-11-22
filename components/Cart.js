@@ -11,7 +11,6 @@ const auth = Firebase.auth();
 
 
 export default function Cart({route}){
-
     const authContext = useContext(AuthContext);
     const navigation = useNavigation()
     const [editItemDetails, setEditItemDetails] = useState({})
@@ -19,157 +18,22 @@ export default function Cart({route}){
     const [itemPreferences, editItemPreferences] = useState({})
     const [itemQuantity, editItemQuantity] = useState(0);
     const [index, setIndex] = useState(0);
-    const [tips, setTips] = useState(0)
-    const [tipIndex, setTipIndex] = useState(1)
-    const tipsArray = ['No tip', '5%', '10%', '15%', '18%'];
     const [test, setTest] = useState(authContext.dateTimeArray[Object.keys(authContext.dateTimeArray)[0]])
     const [dateIndex, setDateIndex] = useState(0)
     const [timeIndex, setTimeIndex] = useState(0)
     const [itemTotal, setItemTotal] = useState(0);
     const [editModal, setEditModal] = useState(false);
     const [cartModal, setCartModal] = useState(true);
-
-
-
     const [paymentSelected, setPaymentSelected] = useState(false);
-    const [paymentMethod, setPaymentMethod] = 
-    useState(authContext.userData.drinkly_cash===undefined || authContext.userData.drinkly_cash < authContext.rounded(authContext.cartSubTotal*1.13+0.15).toFixed(2) ? (authContext.userData.defaultCard === undefined ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash')
-    const [icon, setIcon] = useState(authContext.userData.drinkly_cash===undefined || authContext.userData.drinkly_cash < authContext.rounded(authContext.cartSubTotal*1.13+0.15).toFixed(2) ? (authContext.userData.defaultCard === undefined ? '' : 'credit-card') : 'cash')
+    const [cartTotal, setCartTotal] = useState(0)
+    const [errorMessage, setErrorMessage] = useState('');
+    const tipsArray = ['No tip', '5%', '10%', '15%', '18%'];
+    const [tipIndex, setTipIndex] = useState(1)
+    const [tips, setTips] = useState(0)
 
     const roundTwo=(number)=>{
         const split = String(number).split('.')
     }
-
-const setWeekdayAndTimeArrays = async ()=>{
-      authContext.setPrevScreen("Search2")
-      authContext.setPrevScreenParams({})
-      const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-      var minReadyIn = 10
-      var today = new Date().getDay()
-      const weekDayArrayTemp = ['Today'];
-      ([1,2,3,4]).map((day, i)=>{
-          weekDayArrayTemp.push(weekdays[(today+day)%7]);
-          
-      })
-
-      authContext.setWeekDayArray(weekDayArrayTemp)
-
-      var currentTimeIncrement = new Date(new Date().getTime()+minReadyIn*60000)
-      var coeff = 1000*60*5;
-      var roundUp = new Date(Math.ceil(currentTimeIncrement.getTime()/coeff)*coeff)
-      const dateTimeArrayTemp = {}
-      var open = authContext.cartRestaurantHours[weekdays[today]]["open"]
-      var close = authContext.cartRestaurantHours[weekdays[today]]["close"]
-      var openArray = open.split(' ')[0].split(':')
-      var closeArray = close.split(' ')[0].split(':')
-      var day = new Date()
-      if (openArray.length===1){
-        if (open.split(' ')[1]==='pm'){
-          day.setHours(Number(openArray[0])+12, 0, 0)
-        } else{
-          day.setHours(Number(openArray[0]), 0, 0)
-        }
-      } else{
-        if (open.split(' ')[1]==='pm'){
-          day.setHours(Number(openArray[0])+12, openArray[1], 0)
-        } else{
-          day.setHours(Number(openArray[0]), openArray[1], 0)
-        }
-      }
-
-      var closeDay = new Date()
-      if (closeArray.length===1){
-        if (close.split(' ')[1]==='pm'){
-          closeDay.setHours(Number(closeArray[0])+12, 0, 0)
-        } else{
-          closeDay.setHours(Number(closeArray[0]), 0, 0)
-        }
-      } else{
-        if (close.split(' ')[1]==='pm'){
-          closeDay.setHours(Number(closeArray[0])+12, closeArray[1], 0)
-        } else{
-          closeDay.setHours(Number(closeArray[0]), closeArray[1], 0)
-        }
-      }
-      var afterClose = false
-      if (roundUp.getTime()>closeDay.getTime()){
-        authContext.setAfterClose(true)
-        afterClose = true;
-      }
-
-      if (roundUp.getTime()<day.getTime()){
-        authContext.setBeforeOpen(true)
-      }
-      weekDayArrayTemp.map((weekday, i)=>{
-        var times = []
-        var beforeOpen = false
-        if (i===0){
-          var j = 0;
-          if (roundUp.getTime()<day.getTime()){
-            roundUp = day;
-            beforeOpen = true;
-          }
-          while(roundUp.getTime()<=closeDay.getTime()){
-            if (j===0 && beforeOpen===false){
-                times.push(`In ${minReadyIn} mins`);              
-            } else if (j===1 && beforeOpen===false){
-              times.push(`In ${minReadyIn+10} mins`);
-            } else if (j===2 && beforeOpen===false){
-              times.push(`In ${minReadyIn+20} mins`);
-            } else{
-              times.push(roundUp.toLocaleTimeString([], {timeStyle: 'short'}));
-            }
-            roundUp = new Date(roundUp.getTime()+10*60000);
-            j+=1;
-          }
-          if (afterClose===false){
-            dateTimeArrayTemp[weekday] = times;
-          
-          }
-        } else{
-            open = authContext.cartRestaurantHours[weekday]["open"]
-            close = authContext.cartRestaurantHours[weekday]["close"]
-
-            openArray = open.split(' ')[0].split(':')
-            closeArray = close.split(' ')[0].split(':')
-            if (openArray.length===1){
-              if (open.split(' ')[1]==='pm'){
-                day.setHours(Number(openArray[0])+12, 0, 0)
-              } else{
-                day.setHours(Number(openArray[0]), 0, 0)
-              }
-            } else{
-              if (open.split(' ')[1]==='pm'){
-                day.setHours(Number(openArray[0])+12, openArray[1], 0)
-              } else{
-                day.setHours(Number(openArray[0]), openArray[1], 0)
-              }
-            }
-            if (closeArray.length===1){
-              if (close.split(' ')[1]==='pm'){
-                closeDay.setHours(Number(closeArray[0])+12, 0, 0)
-              } else{
-                closeDay.setHours(Number(closeArray[0]), 0, 0)
-              }
-            } else{
-              if (close.split(' ')[1]==='pm'){
-                closeDay.setHours(Number(closeArray[0])+12, closeArray[1], 0)
-              } else{
-                closeDay.setHours(Number(closeArray[0]), closeArray[1], 0)
-              }
-            }
-            var start = day;
-          while (start.getTime()<=closeDay.getTime()){
-            times.push(start.toLocaleTimeString([], {timeStyle: 'short'}));
-            start = new Date(start.getTime()+10*60000);
-          }
-          dateTimeArrayTemp[weekday] = times;
-        }
-
-
-      })
-      authContext.setDateTimeArray(dateTimeArrayTemp);
-  }
 
     const getSelections=async (item, j)=>{
         await setSelections({});
@@ -191,9 +55,50 @@ const setWeekdayAndTimeArrays = async ()=>{
         })
     }
 
+    const setTip = async (i)=>{
+      if (i === 0){
+        authContext.setTip(0);
+      } else if (i===1){
+        authContext.setTip(0.05 * authContext.cartSubTotal)
+      } else if (i===2){
+        authContext.setTip(0.1 * authContext.cartSubTotal)
+      } else if (i===3){
+        authContext.setTip(0.15 * authContext.cartSubTotal)
+      } else if (i===4){
+        authContext.setTip(0.18 * authContext.cartSubTotal)
+      }
+    }
+
+    const setPaymentMethod = async () =>{
+    const paymentMethodTemp = authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (authContext.cartSubTotal + authContext.tip + authContext.taxes) || authContext.drinklyCash === false ? (authContext.defaultPaymentId=== undefined ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash';
+    await authContext.setPaymentMethod(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (authContext.cartSubTotal + authContext.tip + authContext.taxes) || authContext.drinklyCash === false ? (authContext.defaultPaymentId=== undefined ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash')
+    await authContext.setIcon(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (authContext.cartSubTotal + authContext.tip + authContext.taxes) || authContext.drinklyCash === false ? (authContext.defaultPaymentId=== undefined ? '' : 'credit-card') : 'cash')
+    if (paymentMethodTemp === 'Drinkly Cash'){
+      await authContext.setServiceFee(0);
+    } else{
+      await authContext.setServiceFee(0.15);
+    }
+
+  }
+
+    const checkContinue = async () =>{
+      if (authContext.paymentMethod === 'Please select a payment method'){
+        setErrorMessage('Please select a payment method before continuing.');
+      } else{
+        setErrorMessage('');
+        navigation.navigate("Checkout")
+      }
+    }
+
     useEffect(()=>{
       console.log("Hello")
-        setCartModal(true)
+      setCartModal(true)
+      if (authContext.cartSubTotal <= 4){
+        setCartTotal(authContext.rounded(authContext.cartSubTotal*1.05+0.15).toFixed(2));
+      } else{
+        setCartTotal(authContext.rounded(authContext.cartSubTotal*1.13+0.15).toFixed(2));
+      }
+      setTip(authContext.tipIndex);
     }, [])
 
     return(
@@ -302,12 +207,15 @@ const setWeekdayAndTimeArrays = async ()=>{
            
             </View>
             <View style={{flexDirection: 'row'}}>
-            <View style={{width: '20%'}}><TouchableOpacity style={{alignSelf: 'center', marginTop: 10}} onPress={()=>{
+            <View style={{width: '20%'}}><TouchableOpacity style={{alignSelf: 'center', marginTop: 10}} onPress={async ()=>{
             
             var cartTemp = authContext.cart.map((x)=>x);
             cartTemp.splice(i, 1)
             authContext.setCartNumber(authContext.cartNumber-authContext.cart[i]["quantity"])
-            authContext.setCartSubTotal(authContext.cartSubTotal-authContext.cart[i]["quantity"]*authContext.cart[i]["total_price"])
+            await authContext.setCartSubTotal(authContext.cartSubTotal-authContext.cart[i]["quantity"]*authContext.cart[i]["total_price"])
+            await setTip(authContext.tipIndex)
+            await setPaymentMethod();
+              
             authContext.updateCart(cartTemp);
 
             }}><Text><MaterialCommunityIcons name="trash-can-outline" size={20} style={{opacity: 0.5}}/></Text></TouchableOpacity></View>
@@ -327,9 +235,9 @@ const setWeekdayAndTimeArrays = async ()=>{
                 
                 <View style={{borderBottomWidth: 0.5, borderColor: 'gray', padding: 5, marginVertical: 10, width: '100%'}}>
                     <TouchableOpacity style={{flexDirection: 'row'}} onPress={()=>navigation.navigate("Payment Methods")}>
-                    <MaterialCommunityIcons name={icon} size={17} color={'gray'}/>
-                    <Text style={{color: 'gray', marginLeft: paymentMethod === 'Please select a payment method' ? 0 : 10}}>
-                        {paymentMethod}
+                    <MaterialCommunityIcons name={authContext.icon} size={17} color={'gray'}/>
+                    <Text style={{color: 'gray', marginLeft: authContext.paymentMethod === 'Please select a payment method' ? 0 : 10}}>
+                        {authContext.paymentMethod}
                     </Text>
                     <MaterialCommunityIcons name="chevron-right" size={17} style={{right: 0, position: 'absolute', color: 'gray'}}/>
                      </TouchableOpacity>
@@ -337,7 +245,24 @@ const setWeekdayAndTimeArrays = async ()=>{
                 
             </View>
 
-            <Text style={{fontWeight: 'bold', marginTop: 30, paddingHorizontal: 10, fontSize: 15}}>Total</Text>
+            <View style={{marginTop: 40, paddingHorizontal: 10}}>
+                    <Text style={{fontWeight: 'bold'}}>Tip</Text>
+                    <Text style={{marginBottom: 5, color: 'gray', marginTop: 5}}>Tip {authContext.cartRestaurant.restaurant.name}</Text>
+                    <View style={{flexDirection: 'row'}}>
+                        {authContext.tipsArray.map((tip, i)=>{
+                            if (i===authContext.tipIndex){
+                                return(<View key={i} style={{backgroundColor: '#afb2b2', width: '18%', margin: '1%', alignItems: 'center', padding: 5, borderRadius: 3}}><Text>{tip}</Text></View>)
+                            } else{
+                                return(
+                                <TouchableHighlight key={i} underlayColor='#afb2b2' style={{backgroundColor: '#dadede', width: '18%', margin: '1%', alignItems: 'center', padding: 5, borderRadius: 3}} onPress={async ()=>{authContext.setTipIndex(i); setTip(i)}}>
+                                    <View ><Text>{tip}</Text></View>
+                                </TouchableHighlight>)
+                            }
+                        })}
+                    </View>
+                </View>
+
+            <Text style={{fontWeight: 'bold', marginTop: 50, paddingHorizontal: 10, fontSize: 15}}>Total</Text>
 
             <View style={{paddingHorizontal: 10}}>
                 <View style={{flexDirection: 'row', width: '100%', marginTop: 10, color: 'gray'}}>
@@ -349,24 +274,24 @@ const setWeekdayAndTimeArrays = async ()=>{
                     
                     <Text style={{marginTop: 5, color: 'gray'}}>Estimated taxes</Text>
                     <MaterialCommunityIcons name="information-outline" style={{marginTop: 5, color: 'gray', marginLeft: 10}}/>
-                    <Text style={{marginTop: 5, color: 'gray', position: 'absolute', right: 0}}>${authContext.taxes.toFixed(2)}</Text> 
+                    <Text style={{marginTop: 5, color: 'gray', position: 'absolute', right: 0}}>${authContext.rounded(authContext.taxes).toFixed(2)}</Text> 
                 </View>
-                <View style={{flexDirection: 'row', width: '100%', color: 'gray', borderBottomWidth: 0.5, borderBottomColor: 'gray', paddingBottom: 10}}>
+                <View style={{flexDirection: 'row', width: '100%', color: 'gray'}}>
                     <Text style={{marginTop: 5, color: 'gray'}}>Service fee</Text>
                     <MaterialCommunityIcons name="information-outline" style={{marginTop: 5, color: 'gray', marginLeft: 10}}/>
-                    <Text style={{marginTop: 5, color: 'gray', position: 'absolute', right: 0}}>${0.15}</Text>
+                    <Text style={{marginTop: 5, color: 'gray', position: 'absolute', right: 0}}>${authContext.rounded(authContext.serviceFee).toFixed(2)}</Text>
                 </View>
 
-                {authContext.cartSubTotal < 4 ? 
+                <View style={{flexDirection: 'row', width: '100%', color: 'gray', borderBottomWidth: 0.5, borderBottomColor: 'gray', paddingBottom: 10}}>
+                    <Text style={{marginTop: 5, color: 'gray'}}>Tip</Text>
+                    <MaterialCommunityIcons name="information-outline" style={{marginTop: 5, color: 'gray', marginLeft: 10}}/>
+                    <Text style={{marginTop: 5, color: 'gray', position: 'absolute', right: 0}}>${authContext.rounded(authContext.tip).toFixed(2)}</Text>
+                </View>
+
                 <View style={{flexDirection: 'row', width: '100%', marginBottom: 5}}>
                     <Text style={{fontWeight: 'bold', marginTop: 5}}>Total</Text>
-                    <Text style={{fontWeight: 'bold', marginTop: 5, position: 'absolute', right: 0}}>${authContext.rounded(authContext.cartSubTotal*1.05+0.15).toFixed(2)}</Text>
-                </View> : 
-
-                <View style={{flexDirection: 'row', width: '100%', marginTop: 5}}>
-                    <Text style={{fontWeight: 'bold', marginTop: 5}}>Total</Text>
-                    <Text style={{fontWeight: 'bold', marginTop: 5, position: 'absolute', right: 0}}>${authContext.rounded(authContext.cartSubTotal*1.13+0.15).toFixed(2)}</Text>
-                </View>}
+                    <Text style={{fontWeight: 'bold', marginTop: 5, position: 'absolute', right: 0}}>${authContext.rounded(authContext.cartSubTotal + authContext.taxes + authContext.serviceFee + authContext.tip).toFixed(2)}</Text>
+                </View> 
             </View>
 
 
@@ -454,6 +379,7 @@ const setWeekdayAndTimeArrays = async ()=>{
 
         
         </ScrollView> 
+
         </View>
         <TouchableOpacity
             style={{backgroundColor: 'white',
@@ -472,10 +398,13 @@ const setWeekdayAndTimeArrays = async ()=>{
             }}>
             <MaterialCommunityIcons name="close" size={22}/>
         </TouchableOpacity> 
-        <View style={{backgroundColor: 'white', bottom: '0%', position: 'absolute', width: '100%', height: 80}}>
-        <TouchableOpacity style={{position: 'absolute', top: '0%', width: '95%', alignSelf: 'center', paddingVertical: 11, paddingHorizontal: 30, backgroundColor: '#119aa3', borderRadius: 20, textAlign: 'center'}} 
-        onPress={()=>navigation.navigate("Checkout")}>
-                <Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', fontSize: 16}}>Continue (${authContext.rounded(authContext.cartSubTotal).toFixed(2)})</Text>
+
+        
+        <View style={{backgroundColor: 'white', bottom: '0%', position: 'absolute', width: '100%', height: 100}}>
+          <Text style={{alignSelf: 'center', textAlign: 'center', color: 'red', marginBottom: 10}}>{errorMessage}</Text>
+        <TouchableOpacity style={{position: 'absolute', top: '0%', marginTop: 20, width: '95%', alignSelf: 'center', paddingVertical: 11, paddingHorizontal: 30, backgroundColor: '#119aa3', borderRadius: 20, textAlign: 'center'}} 
+        onPress={()=>checkContinue()}>
+                <Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', fontSize: 16}}>Continue (${authContext.rounded(authContext.cartSubTotal + authContext.taxes + authContext.serviceFee + authContext.tip).toFixed(2)})</Text>
         </TouchableOpacity> 
         </View>
 

@@ -115,8 +115,8 @@ export default function HomeStack(){
     const [prevScreen, setPrevScreen] = useState('')
     const [prevScreenParams, setPrevScreenParams] = useState({})
     const [cartNumber, setCartNumber] = useState(0)
-    const [taxes, setTaxes] = useState(0);
-    const [serviceFee, setServiceFee] = useState(0);
+    
+    
     const [drinklyCash, setDrinklyCash] = useState(false);
     const [drinklyCashAmount, setDrinklyCashAmount] = useState(0);
     const [dayIndex, setDayIndex] = useState(0);
@@ -131,10 +131,17 @@ export default function HomeStack(){
     const [quickCheckoutObject, setQuickCheckoutObject] = useState({})
     const [discountCode, setDiscountCode] = useState('')
     const [discount,setDiscount] = useState(0)
+
+    
     const [tip, setTip] = useState(0);
     const [paymentMethods, setPaymentMethods] = useState([])
     const [defaultPaymentId, setDefaultPaymentId] = useState('');
-
+    const [paymentMethod, setPaymentMethod] = useState(drinklyCashAmount===undefined || drinklyCashAmount < cartSubTotal || drinklyCash === false ? (defaultPaymentId=== undefined ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash')
+    const [icon, setIcon] = useState(drinklyCashAmount===undefined || drinklyCashAmount < (cartSubTotal) || drinklyCash === false ? (defaultPaymentId === undefined ? '' : 'credit-card') : 'cash')
+    const [taxes, setTaxes] = useState(0);
+    const [serviceFee, setServiceFee] = useState(paymentMethod === 'Drinkly Cash' ? 0 : 0.15);
+    const tipsArray = ['No tip', '5%', '10%', '15%', '18%'];
+    const [tipIndex, setTipIndex] = useState(1)
     const navigation = useNavigation();
     const Stack = createStackNavigator();
 
@@ -199,8 +206,8 @@ export default function HomeStack(){
     const getUser = async () =>{
         const userTemp = await Firebase.firestore().collection('users').doc(user.uid).get()
         setUserData(userTemp.data());
-        setDefaultPaymentId(userTemp.data().default_payment_id);
-        setDrinklyCashAmount(userTemp.data().drinkly_cash);
+        setDefaultPaymentId(userTemp.data().default_payment_id===undefined || userTemp.data().default_payment_id===null ? '' : userTemp.data().default_payment_id);
+        setDrinklyCashAmount(userTemp.data().drinkly_cash===undefined || userTemp.data().drinkly_cash===null ? 0 : userTemp.data().drinkly_cash);
         return userTemp.data();
         
     }
@@ -690,7 +697,7 @@ export default function HomeStack(){
     search, setSearch, discounts, setDiscounts, savedRestaurants, setSavedRestaurants, savedRestaurantsObject, setSavedRestaurantsObject,
     quickCheckoutList, setQuickCheckoutList, quickCheckoutObject, setQuickCheckoutObject, tip, setTip, discount, setDiscount, 
     discountCode, setDiscountCode, rounded, paymentMethods, setPaymentMethods, defaultPaymentId, setDefaultPaymentId,
-    drinklyCashAmount, setDrinklyCashAmount}}>
+    drinklyCashAmount, setDrinklyCashAmount, paymentMethod, setPaymentMethod, icon, setIcon, tipIndex, setTipIndex, tipsArray}}>
         <Stack.Navigator style={{height: '90%'}}>
             <Stack.Screen 
                     name="Tabs" 

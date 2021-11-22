@@ -58,7 +58,38 @@ export default function ItemModal({item, selections, preferences, itemQuantity, 
     authContext.setItemTotals(itemTotalsTemp);
   }
 
-  const handleAddCart = ()=>{
+    const setTip = async (subtotal)=>{
+    if (authContext.tipIndex === 0){
+      await authContext.setTip(0);
+      return 0
+    } else if (authContext.tipIndex===1){
+      await authContext.setTip(0.05 * subtotal)
+      return (0.05 * subtotal)
+    } else if (authContext.tipIndex===2){
+      await authContext.setTip(0.1 * subtotal)
+      return (0.1 * subtotal)
+    } else if (authContext.tipIndex===3){
+      await authContext.setTip(0.15 * subtotal)
+      return (0.15 * subtotal)
+    } else if (authContext.tipIndex===4){
+      await authContext.setTip(0.18 * subtotal)
+      return (0.18 * subtotal)
+    }
+  }
+
+    const setPaymentMethod = async (subtotal, tip, taxes) =>{
+    const paymentMethodTemp = authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || authContext.drinklyCash === false ? (authContext.defaultPaymentId=== undefined ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash';
+    await authContext.setPaymentMethod(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || authContext.drinklyCash === false ? (authContext.defaultPaymentId=== undefined ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash')
+    await authContext.setIcon(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || authContext.drinklyCash === false ? (authContext.defaultPaymentId=== undefined ? '' : 'credit-card') : 'cash')
+    if (paymentMethodTemp === 'Drinkly Cash'){
+      await authContext.setServiceFee(0);
+    } else{
+      await authContext.setServiceFee(0.15);
+    }
+
+  }
+
+  const handleAddCart = async ()=>{
         //handle if it's the same restaurant
         var added = false;
         const cartTemp = authContext.cart.map((x)=>x);
@@ -87,12 +118,19 @@ export default function ItemModal({item, selections, preferences, itemQuantity, 
         })
         authContext.setCartNumber(totalQuantity);
         authContext.updateCart(cartTemp);
-        authContext.setCartSubTotal(cartSubTotalTemp);
+        await authContext.setCartSubTotal(cartSubTotalTemp)
+        let taxesTemp;
         if (cartSubTotalTemp<4){
-          authContext.setTaxes((cartSubTotalTemp*0.05));
+          await authContext.setTaxes((cartSubTotalTemp*0.05));
+          taxesTemp = (cartSubTotalTemp*0.05);
+
         } else{
-          authContext.setTaxes((cartSubTotalTemp*0.13));
+          await authContext.setTaxes((cartSubTotalTemp*0.13));
+          taxesTemp = (cartSubTotalTemp*0.13)
         }
+        await setTip(cartSubTotalTemp).then(async (tip) => {
+        await setPaymentMethod(cartSubTotalTemp, tip, taxesTemp);
+        });
         authContext.setEditItem(false);
       // navigation.navigate("Search2", {screen: route.params.restaurant["name"], params: {restaurant: route.params.restaurant, itemsArr: itemArr, modals: modalsTemp}})
     

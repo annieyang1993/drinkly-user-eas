@@ -71,18 +71,6 @@ export default function Checkout(){
         if (user_order_ids===undefined){
             user_order_ids = [];
         }
-        let tip;
-        if (tipIndex===0){
-            tip = 0
-        } else if (tipIndex===1){
-            tip=(0.05*authContext.cartSubTotal);
-        } else if (tipIndex===2){
-            tip=(0.1*authContext.cartSubTotal);
-        } else if (tipIndex===3){
-            tip=(0.15*authContext.cartSubTotal);
-        } else if (tipIndex===4){
-            tip=(0.18*authContext.cartSubTotal);
-        }
         const data = await Firebase.firestore().collection('users')
         .doc(`${authContext.user.uid}`)
         .collection('orders')
@@ -109,7 +97,7 @@ export default function Checkout(){
             canceled: false,
             number_of_items: authContext.cartNumber,
             ready_by: ready_by,
-            tip: tip
+            tip: authContext.tip
             
         });
 
@@ -139,7 +127,7 @@ export default function Checkout(){
             number_of_items: authContext.cartNumber,
             canceled: false,
             ready_by: ready_by,
-            tip: tip
+            tip: authContext.tip
         }).then(async()=>{
         authContext.cart.map(async (cartItem, i)=>{
             Firebase.firestore().collection('restaurants').doc(`${authContext.cartRestaurant.info}`).collection(`orders`).doc(`${order_id}`).collection('items').doc(`${i}`).set({
@@ -380,26 +368,26 @@ export default function Checkout(){
             {console.log(authContext.cart)}
             <Text style={{marginTop: 70, alignSelf: 'center', fontWeight: 'bold', fontSize: 16}}>Checkout</Text>
             <Text style={{alignSelf: 'center', fontWeight: 'bold', fontSize: 17, color: '#119aa3'}}>{authContext.cartRestaurant.restaurant.name}</Text>
-            <View showsVerticalScrollIndicator={false} style={{height: Dimensions.get("screen").height, width: '100%', backgroundColor: 'white', paddingHorizontal: 20, paddingTop: 50}}>
+            <ScrollView showsVerticalScrollIndicator={false} style={{height: Dimensions.get("screen").height, width: '100%', backgroundColor: 'white', paddingHorizontal: 20, paddingTop: 50}}>
                 <View style={{flexDirection: 'row', borderBottomWidth: 0.5, borderBottomColor: 'lightgray'}}>
-                    <MaterialCommunityIcons style={{paddingVertical: 10}} size={17} name="store-outline"/>
+                    <MaterialCommunityIcons style={{paddingVertical: 10}} size={17} name="store-outline" color='gray'/>
                     <Text style={{paddingVertical: 10, marginLeft: 10, fontWeight: 'bold', color: 'gray'}}>Pick up your order from: </Text>
                     <Text style={{position: 'absolute', right: 0, paddingVertical: 10, color: 'gray'}}>{authContext.cartRestaurant.restaurant.street[0]}</Text>
                 </View>
                 <View style={{borderBottomWidth: 0.5, borderBottomColor: 'lightgray', }}>
-                    <TouchableOpacity onPress={()=>navigation.push("Payments")}>
+                    <TouchableOpacity onPress={()=>navigation.push("Payment Methods")}>
                         <View style={{flexDirection: 'row', width: '100%'}}>
-                            <MaterialCommunityIcons style={{paddingVertical: 10}} size={17} name="credit-card-outline" />
+                            <MaterialCommunityIcons style={{paddingVertical: 10}} size={17} color = 'gray' name="credit-card-outline" />
                             <Text style={{paddingVertical: 10, marginLeft: 10, fontWeight: 'bold', color: 'gray'}}>Payment method </Text>
                             <Text style={{position: 'absolute', right: 20, paddingVertical: 10, color: 'gray'}}>Drinkly Cash</Text>
                             <MaterialCommunityIcons style={{paddingVertical: 10, position: 'absolute', right: 0}} size={17} name="chevron-right" color={'gray'} />
                         </View>
                    </TouchableOpacity>
                 </View>
-                <View>
+                <View style={{marginTop: 10}}>
                     <Text style={{fontWeight: 'bold', marginTop: 50}}>Pickup time</Text>
                     <Text style={{color: 'gray', marginBottom: 5, marginTop: 5}}>Select an approximate pickup time for the store to have your order ready by. </Text>
-                    <View style={{flexDirection: 'row', alignItems: 'center', alignSelf: 'center', marginTop: 0}}>
+                    <View style={{flexDirection: 'row', alignItems: 'center', alignSelf: 'center', marginTop: 0, marginBottom: 100}}>
                         <View style={{flexDirection: 'column'}}>
 
                             <Picker
@@ -433,29 +421,14 @@ export default function Checkout(){
                             </Picker>
                         </View>
                     </View>
-                    {authContext.beforeOpen ? <Text style={{alignSelf: 'center', fontSize: 12, color: 'gray', textAlign: 'center', marginTop: 140, width: 200}}> The store has not opened yet. Please select a time after the store opens. </Text> : null}
-                    {authContext.afterClose ? <Text style={{alignSelf: 'center', fontSize: 12, color: 'gray', textAlign: 'center', marginTop: 140, width: 200}}> The store is closed today. Please select a time for future pickup. </Text> : null}
+                    {authContext.beforeOpen ? <Text style={{alignSelf: 'center', fontSize: 12, color: 'gray', textAlign: 'center', marginTop: 10, width: 200}}> The store has not opened yet. Please select a time after the store opens. </Text> : null}
+                    {authContext.afterClose ? <Text style={{alignSelf: 'center', fontSize: 12, color: 'gray', textAlign: 'center', marginTop: 10, width: 200}}> The store is closed today. Please select a time for future pickup. </Text> : null}
 
                 </View>
                 {console.log(authContext.cartRestaurant)}
 
-                <View style={{marginTop: 40}}>
-                    <Text style={{fontWeight: 'bold'}}>Tip</Text>
-                    <Text style={{marginBottom: 5, color: 'gray', marginTop: 5}}>Tip {authContext.cartRestaurant.restaurant.name}</Text>
-                    <View style={{flexDirection: 'row'}}>
-                        {tipsArray.map((tip, i)=>{
-                            if (i===tipIndex){
-                                return(<View key={i} style={{backgroundColor: '#afb2b2', width: '18%', margin: '1%', alignItems: 'center', padding: 5, borderRadius: 3}}><Text>{tip}</Text></View>)
-                            } else{
-                                return(
-                                <TouchableHighlight key={i} underlayColor='#afb2b2' style={{backgroundColor: '#dadede', width: '18%', margin: '1%', alignItems: 'center', padding: 5, borderRadius: 3}} onPress={()=>setTipIndex(i)}>
-                                    <View ><Text>{tip}</Text></View>
-                                </TouchableHighlight>)
-                            }
-                        })}
-                    </View>
-                </View>
-            </View>
+
+            </ScrollView>
             <View style={{backgroundColor: 'white', bottom: '12%', position: 'absolute', width: '100%', height: 80}}>
             <TouchableOpacity style={{position: 'absolute', top: '0%', width: '95%', alignSelf: 'center', paddingVertical: 11, paddingHorizontal: 30, backgroundColor: '#119aa3', borderRadius: 20, textAlign: 'center'}} 
             onPress={()=>{
