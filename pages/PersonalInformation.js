@@ -19,7 +19,6 @@ export default function PersonalInformation({navigation}){
 
     const checkNumber = (number) => {
         const numberArray = number.split('');
-        console.log(numberArray)
         const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
         if (numberArray.length!==12){
             return false;
@@ -174,7 +173,6 @@ export default function PersonalInformation({navigation}){
                                         lastName: lastName,
                                         number: number
                                     }, {merge: true})
-                                console.log("EMAIL UPDATED!")
                                 setSubmittedState(1);
                             }).catch((error)=>{
                                 //An error occurred

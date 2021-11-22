@@ -44,7 +44,6 @@ export default function DrinklyCash({route}){
                 setErrorMessage(``);
             }
         }
-        console.log(authContext.userData.default_payment_id)
             
         if (authContext.userData.default_payment_id === undefined || authContext.userData.default_payment_id === null){
             setPaymentModal(true);
@@ -83,8 +82,6 @@ export default function DrinklyCash({route}){
     }
 
     const createCharge = async() => {
-        console.log(authContext.userData.stripeId)
-        console.log(authContext.userData.default_payment_id)
         const response = await fetch('http://localhost:5000/drinkly-user/us-central1/createCharge', {
             method: 'POST',
             headers: {
@@ -98,7 +95,6 @@ export default function DrinklyCash({route}){
             })
         })
         const responseJson = await response.json();
-        console.log(responseJson);
     }
 
 

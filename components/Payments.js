@@ -70,12 +70,6 @@ export default function Payments(){
     //   response.send({"data": "hello"});
     // });
 
-    const handleSubmit=async(e)=>{
-        await createEphemeralKey().then(async (response)=>{
-            console.log(JSON.stringify(response))
-        });
-
-    }
 
     //Create setup intent on backend and returns the client secret to use within confirmSetupIntent
     const getClientSecret = async () => {
@@ -144,7 +138,6 @@ export default function Payments(){
                 <StripeProvider merchantIdentifier="merchant.identifier"
                     publishableKey={"pk_test_51JZinFLzDwIJCChhuq8DoRCrStqSktqj22guQPw1NaReIUa97QsONeJrOCdiKsxVq7nSapVfsXYFwxdzueG9PRgX00Ru6vfnBu"}>
                     <View style={styles.container}>
-                        {console.log(authContext.userData)}
                     <TextInput
                     autoCapitalize='none'
                     placeholder='Cardholder Name'

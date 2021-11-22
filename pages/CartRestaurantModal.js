@@ -308,7 +308,7 @@ const setTip = async (subtotal)=>{
       })
       await authContext.setCartSubTotal((preferenceSelections["quantity"]*itemTotal))
         
-      let taxesTemp;
+      var taxesTemp = 0;
       if ((preferenceSelections["quantity"]*itemTotal)<4){
         await authContext.setTaxes(((preferenceSelections["quantity"]*itemTotal)*0.05));
         taxesTemp = ((preferenceSelections["quantity"]*itemTotal)*0.05);
@@ -358,7 +358,7 @@ const setTip = async (subtotal)=>{
         authContext.updateCart(cartTemp);
         await authContext.setCartSubTotal(authContext.cartSubTotal+(preferenceSelections["quantity"]*itemTotal))
 
-        let taxesTemp;
+        var taxesTemp = 0;
         if ((authContext.cartSubTotal+(preferenceSelections["quantity"]*itemTotal))<4){
           await authContext.setTaxes((authContext.cartSubTotal+(preferenceSelections["quantity"]*itemTotal))*0.05);
           taxesTemp = (authContext.cartSubTotal+(preferenceSelections["quantity"]*itemTotal))*0.05;
@@ -404,7 +404,7 @@ const setTip = async (subtotal)=>{
       authContext.setCartRestaurantHours(route.params.times)
       authContext.setCartNumber(preferenceSelections["quantity"])
       await authContext.setCartSubTotal(preferenceSelections["quantity"]*itemTotal)
-      let taxesTemp;
+      var taxesTemp = 0;
       if ((preferenceSelections["quantity"]*itemTotal)<4){
         await authContext.setTaxes(((preferenceSelections["quantity"]*itemTotal)*0.05));
         taxesTemp = ((preferenceSelections["quantity"]*itemTotal)*0.05)

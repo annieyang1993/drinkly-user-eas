@@ -65,7 +65,7 @@ export default function ItemModal({item, selections}){
         modalsTemp[item["name"]] = false;
       })
       await authContext.setCartSubTotal(Number(preferenceSelections["quantity"]*Number(itemTotal)))
-      let taxesTemp;
+      var taxesTemp = 0;
       if ((Number(preferenceSelections["quantity"])*Number(itemTotal))<4){
         await authContext.setTaxes(((Number(preferenceSelections["quantity"])*Number(itemTotal))*0.05));
         taxesTemp = ((Number(preferenceSelections["quantity"])*Number(itemTotal))*0.05);
@@ -140,7 +140,7 @@ export default function ItemModal({item, selections}){
       authContext.setCartRestaurantHours(route.params.times)
       await authContext.setCartSubTotal(Number(preferenceSelections["quantity"])*Number(itemTotal))
       await authContext.setCartNumber(preferenceSelections["quantity"])
-      let taxesTemp;
+      var taxesTemp = 0;
       if ((Number(preferenceSelections["quantity"])*Number(itemTotal))<4){
         await authContext.setTaxes((Number(preferenceSelections["quantity"])*Number(itemTotal)*0.05));
         taxesTemp = (Number(preferenceSelections["quantity"])*Number(itemTotal)*0.05);

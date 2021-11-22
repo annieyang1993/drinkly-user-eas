@@ -254,17 +254,17 @@ function ItemModal({item, selections}){
       await authContext.setTip(0);
       return 0
     } else if (authContext.tipIndex===1){
-      await authContext.setTip(0.05 * subtotal)
-      return (0.05 * subtotal)
+      await authContext.setTip(0.05 * Number(subtotal))
+      return (0.05 * Number(subtotal))
     } else if (authContext.tipIndex===2){
-      await authContext.setTip(0.1 * subtotal)
-      return (0.1 * subtotal)
+      await authContext.setTip(0.1 * Number(subtotal))
+      return (0.1 * Number(subtotal))
     } else if (authContext.tipIndex===3){
-      await authContext.setTip(0.15 * subtotal)
-      return (0.15 * subtotal)
+      await authContext.setTip(0.15 * Number(subtotal))
+      return (0.15 * Number(subtotal))
     } else if (authContext.tipIndex===4){
-      await authContext.setTip(0.18 * subtotal)
-      return (0.18 * subtotal)
+      await authContext.setTip(0.18 * Number(subtotal))
+      return (0.18 * Number(subtotal))
     }
   }
 
@@ -296,7 +296,7 @@ function ItemModal({item, selections}){
       Object.values(itemArr).map((item,i)=>{
         modalsTemp[item["name"]] = false;
       })
-      let taxesTemp;
+      var taxesTemp = 0;
       if ((preferenceSelections["quantity"]*itemTotal)<4){
         authContext.setTaxes(((preferenceSelections["quantity"]*itemTotal)*0.05));
         taxesTemp = ((preferenceSelections["quantity"]*itemTotal)*0.05)
@@ -317,7 +317,7 @@ function ItemModal({item, selections}){
 
       // navigation.navigate("Search2", {screen: route.params.restaurant["name"], params: {restaurant: route.params.restaurant, itemsArr: itemArr, modals: modalsTemp}})
     } else{
-      if (authContext.cartRestaurant["info"]===`${route.params.restaurant["name"]}-${route.params.restaurant["street"][0]}-${route.params.restaurant["city"]}`){
+      if (authContext.cartRestaurant["info"]===`${route.params.restaurant["restaurant_id"]}`){
         //handle if it's the same restaurant
         var added = false;
         const cartTemp = authContext.cart.map((x)=>x);
@@ -338,7 +338,7 @@ function ItemModal({item, selections}){
         }
         authContext.updateCart(cartTemp);
         await authContext.setCartSubTotal(authContext.cartSubTotal+(preferenceSelections["quantity"]*itemTotal))
-        let taxesTemp;
+        var taxesTemp = 0;
         if ((authContext.cartSubTotal+(preferenceSelections["quantity"]*itemTotal))<4){
           authContext.setTaxes((authContext.cartSubTotal+(preferenceSelections["quantity"]*itemTotal))*0.05);
           taxesTemp = (authContext.cartSubTotal+(preferenceSelections["quantity"]*itemTotal))*0.05;
@@ -347,6 +347,9 @@ function ItemModal({item, selections}){
           taxesTemp = (authContext.cartSubTotal+(preferenceSelections["quantity"]*itemTotal))*0.13;
         }
         authContext.setCartNumber(authContext.cartNumber+preferenceSelections["quantity"])
+        await setTip(authContext.cartSubTotal+(preferenceSelections["quantity"]*itemTotal)).then(async (tip) => {
+        await setPaymentMethod(authContext.cartSubTotal+(preferenceSelections["quantity"]*itemTotal), tip, taxesTemp);
+      });
         setModalVisibles()
       } else{
         setDiffRestaurantCartPrompt(true)
@@ -356,9 +359,7 @@ function ItemModal({item, selections}){
       Object.values(itemArr).map((item,i)=>{
         modalsTemp[item["name"]] = false;
       })
-      await setTip(authContext.cartSubTotal+(preferenceSelections["quantity"]*itemTotal)).then(async (tip) => {
-        await setPaymentMethod(authContext.cartSubTotal+(preferenceSelections["quantity"]*itemTotal), tip, taxesTemp);
-      });
+      
 
       
       // navigation.navigate("Search2", {screen: route.params.restaurant["name"], params: {restaurant: route.params.restaurant, itemsArr: itemArr, modals: modalsTemp}})
@@ -386,15 +387,15 @@ function ItemModal({item, selections}){
       await authContext.setCartRestaurantHours(route.params.times)
       await authContext.setCartSubTotal(preferenceSelections["quantity"]*itemTotal)
       authContext.setCartNumber(preferenceSelections["quantity"])
-      let taxesTemp;
+      var taxesTemp = 0;
       if ((preferenceSelections["quantity"]*itemTotal)<4){
         authContext.setTaxes(((preferenceSelections["quantity"]*itemTotal)*0.05));
-        taxesTemp =((preferenceSelections["quantity"]*itemTotal)*0.05); 
+        taxesTemp =((Number(preferenceSelections["quantity"])*Number(itemTotal))*0.05); 
       } else{
         authContext.setTaxes(((preferenceSelections["quantity"]*itemTotal)*0.13));
-        taxesTemp = ((preferenceSelections["quantity"]*itemTotal)*0.13);
+        taxesTemp = ((Number(preferenceSelections["quantity"])*Number(itemTotal))*0.13);
       }
-      await setTip(preferenceSelections["quantity"]*itemTotal).then(async (tip) => {
+      await setTip(Number(preferenceSelections["quantity"])*Number(itemTotal)).then(async (tip) => {
         await setPaymentMethod(preferenceSelections["quantity"]*itemTotal, tip, taxesTemp);
       });
       // navigation.navigate("Search2", {screen: route.params.restaurant["name"], params: {restaurant: route.params.restaurant, itemsArr: itemArr, modals: modalsTemp}})
@@ -775,7 +776,6 @@ function ItemModal({item, selections}){
           console.log("CHECK REQUIRED")
         } else{
           handleAddCart();
-          console.log(preferenceSelections);
           
           
         }

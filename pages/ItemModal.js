@@ -21,19 +21,11 @@ export default function ItemModal({item, selections, preferences, itemQuantity, 
   const [quantity, setQuantity] = useState(itemQuantity);
   const [itemTotal, setItemTotal] = useState(total)
 
-    useEffect(()=>{
-      console.log(preferences);
-      console.log("Hello hi")
-
-    }, [])
-
   const updateItemTotal=()=>{
     var currentItemPrice = Number(item["price"]);
     Object.keys(preferenceSelections["preference_selections"]).map((selection, i)=>{
       if (!(selection==="special_instructions")){
         currentItemPrice+=Number(preferenceSelections["preference_selections"][selection]["quantity"])*Number(preferenceSelections["preference_selections"][selection]["price"])
-        console.log(Number(preferenceSelections["preference_selections"][selection]["quantity"]));
-        console.log(Number(preferenceSelections["preference_selections"][selection]["price"]));
       }
 
     })
@@ -119,7 +111,7 @@ export default function ItemModal({item, selections, preferences, itemQuantity, 
         authContext.setCartNumber(totalQuantity);
         authContext.updateCart(cartTemp);
         await authContext.setCartSubTotal(cartSubTotalTemp)
-        let taxesTemp;
+        var taxesTemp = 0;
         if (cartSubTotalTemp<4){
           await authContext.setTaxes((cartSubTotalTemp*0.05));
           taxesTemp = (cartSubTotalTemp*0.05);
@@ -314,7 +306,6 @@ export default function ItemModal({item, selections, preferences, itemQuantity, 
       if (countPerSelection[i]<9){
         const countPerSelectionTemp = countPerSelection.map((x)=>x);
         countPerSelectionTemp[i]+=1;
-        console.log("COUNT PER SELECTION TEMP", countPerSelectionTemp)
         setCountPerSelection(countPerSelectionTemp)
         setCountSelected(countSelected+1);
         const preferenceSelectionsTemp = preferenceSelections;
@@ -329,9 +320,7 @@ export default function ItemModal({item, selections, preferences, itemQuantity, 
         preferenceSelectionsTemp["preference_selections"][String(selection["name"]+i)]["choice"] = selection["choices"][i];
         preferenceSelectionsTemp["preference_selections"][String(selection["name"]+i)]["required"] = false
         setPreferenceSelections(preferenceSelectionsTemp);
-        console.log(preferenceSelectionsTemp["preference_selections"][String(selection["name"]+i)]["quantity"])
         updateItemTotal();
-        console.log("COUNT PER SELECTION", countPerSelection);
       }
 
     }

@@ -27,7 +27,6 @@ export default function PaymentMethods({navigation}){
     return(
         <View style={{height: Dimensions.get("screen").height, width: '100%', marginTop: 'auto', backgroundColor: 'white'}}>
             <View style={styles.container}>
-            {console.log(authContext.drinklyCash)}
             <ScrollView showsVerticalScrollIndicator={false} style={{height: '100%', width: '100%', marginTop: 50}}>
                 <View style={{width: '95%', alignSelf: 'center'}}>
                     <View style={{width: '100%', flexDirection: 'row'}}>
@@ -78,7 +77,6 @@ export default function PaymentMethods({navigation}){
                         <Text style={{color: 'gray'}}>+ Add Card</Text>
                     </TouchableOpacity>
                 </View>
-                {console.log(authContext.userData)}
                 
             </ScrollView>
 

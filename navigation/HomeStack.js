@@ -197,7 +197,6 @@ export default function HomeStack(){
             return;
         } else{
             let location = await Location.getCurrentPositionAsync({accuracy: Location.Accuracy.Highest});
-            console.log(location);
             setLocation(location);
             setLocationSet(true);
         }
@@ -257,7 +256,6 @@ export default function HomeStack(){
 
     useEffect(()=>{
         Geocoder.init("AIzaSyB9fx4NpEW1D65AvgJjzY-npVoFUf17FRg");
-        console.log("HOME STACK LOADED")
         getRestaurants();
         getLocation();
         getOrders();

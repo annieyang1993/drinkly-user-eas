@@ -55,24 +55,29 @@ export default function Cart({route}){
         })
     }
 
-    const setTip = async (i)=>{
-      if (i === 0){
-        authContext.setTip(0);
-      } else if (i===1){
-        authContext.setTip(0.05 * authContext.cartSubTotal)
-      } else if (i===2){
-        authContext.setTip(0.1 * authContext.cartSubTotal)
-      } else if (i===3){
-        authContext.setTip(0.15 * authContext.cartSubTotal)
-      } else if (i===4){
-        authContext.setTip(0.18 * authContext.cartSubTotal)
-      }
+      const setTip = async (subtotal, i)=>{
+    if (i === 0){
+      await authContext.setTip(0);
+      return 0
+    } else if (i===1){
+      await authContext.setTip(0.05 * subtotal)
+      return (0.05 * subtotal)
+    } else if (i===2){
+      await authContext.setTip(0.1 * subtotal)
+      return (0.1 * subtotal)
+    } else if (i===3){
+      await authContext.setTip(0.15 * subtotal)
+      return (0.15 * subtotal)
+    } else if (i===4){
+      await authContext.setTip(0.18 * subtotal)
+      return (0.18 * subtotal)
     }
+  }
 
-    const setPaymentMethod = async () =>{
-    const paymentMethodTemp = authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (authContext.cartSubTotal + authContext.tip + authContext.taxes) || authContext.drinklyCash === false ? (authContext.defaultPaymentId=== undefined ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash';
-    await authContext.setPaymentMethod(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (authContext.cartSubTotal + authContext.tip + authContext.taxes) || authContext.drinklyCash === false ? (authContext.defaultPaymentId=== undefined ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash')
-    await authContext.setIcon(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (authContext.cartSubTotal + authContext.tip + authContext.taxes) || authContext.drinklyCash === false ? (authContext.defaultPaymentId=== undefined ? '' : 'credit-card') : 'cash')
+    const setPaymentMethod = async (subtotal, tip, taxes) =>{
+    const paymentMethodTemp = authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || authContext.drinklyCash === false ? (authContext.defaultPaymentId=== undefined ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash';
+    await authContext.setPaymentMethod(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || authContext.drinklyCash === false ? (authContext.defaultPaymentId=== undefined ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash')
+    await authContext.setIcon(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || authContext.drinklyCash === false ? (authContext.defaultPaymentId=== undefined ? '' : 'credit-card') : 'cash')
     if (paymentMethodTemp === 'Drinkly Cash'){
       await authContext.setServiceFee(0);
     } else{
@@ -91,14 +96,13 @@ export default function Cart({route}){
     }
 
     useEffect(()=>{
-      console.log("Hello")
       setCartModal(true)
       if (authContext.cartSubTotal <= 4){
         setCartTotal(authContext.rounded(authContext.cartSubTotal*1.05+0.15).toFixed(2));
       } else{
         setCartTotal(authContext.rounded(authContext.cartSubTotal*1.13+0.15).toFixed(2));
       }
-      setTip(authContext.tipIndex);
+      setTip(authContext.cartSubTotal, authContext.tipIndex);
     }, [])
 
     return(
@@ -213,8 +217,18 @@ export default function Cart({route}){
             cartTemp.splice(i, 1)
             authContext.setCartNumber(authContext.cartNumber-authContext.cart[i]["quantity"])
             await authContext.setCartSubTotal(authContext.cartSubTotal-authContext.cart[i]["quantity"]*authContext.cart[i]["total_price"])
-            await setTip(authContext.tipIndex)
-            await setPaymentMethod();
+            var taxesTemp = 0;
+            if ((authContext.cartSubTotal-authContext.cart[i]["quantity"]*authContext.cart[i]["total_price"])<4){
+            authContext.setTaxes((authContext.cartSubTotal-authContext.cart[i]["quantity"]*authContext.cart[i]["total_price"])*0.05);
+            taxesTemp = (authContext.cartSubTotal-authContext.cart[i]["quantity"]*authContext.cart[i]["total_price"])*0.05;
+            } else{
+            authContext.setTaxes((authContext.cartSubTotal-authContext.cart[i]["quantity"]*authContext.cart[i]["total_price"])*0.13);
+            taxesTemp = (authContext.cartSubTotal-authContext.cart[i]["quantity"]*authContext.cart[i]["total_price"])*0.13;
+            }
+
+            await setTip(authContext.cartSubTotal-authContext.cart[i]["quantity"]*authContext.cart[i]["total_price"], authContext.tipIndex).then(async (tip) => {
+                await setPaymentMethod(authContext.cartSubTotal-authContext.cart[i]["quantity"]*authContext.cart[i]["total_price"], tip, taxesTemp);
+            });
               
             authContext.updateCart(cartTemp);
 
@@ -254,7 +268,7 @@ export default function Cart({route}){
                                 return(<View key={i} style={{backgroundColor: '#afb2b2', width: '18%', margin: '1%', alignItems: 'center', padding: 5, borderRadius: 3}}><Text>{tip}</Text></View>)
                             } else{
                                 return(
-                                <TouchableHighlight key={i} underlayColor='#afb2b2' style={{backgroundColor: '#dadede', width: '18%', margin: '1%', alignItems: 'center', padding: 5, borderRadius: 3}} onPress={async ()=>{authContext.setTipIndex(i); setTip(i)}}>
+                                <TouchableHighlight key={i} underlayColor='#afb2b2' style={{backgroundColor: '#dadede', width: '18%', margin: '1%', alignItems: 'center', padding: 5, borderRadius: 3}} onPress={async ()=>{authContext.setTipIndex(i); setTip(authContext.cartSubTotal, i)}}>
                                     <View ><Text>{tip}</Text></View>
                                 </TouchableHighlight>)
                             }

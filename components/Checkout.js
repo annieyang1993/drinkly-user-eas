@@ -290,7 +290,7 @@ export default function Checkout(){
                     .set({
                         restaurant_id: authContext.cartRestaurant.info,
                         user_id: authContext.user.uid,
-                        current_points: Number(authContext.cartRestaurant.points_per_purchase),
+                        current_points: Number(authContext.cartRestaurant.restaurant.points_per_purchase),
                         max_points: Number(authContext.cartRestaurant.restaurant.max_points), ///NEED TO UPDATE THIS TO RESTAURANT'S MAX POINTS
                         rewards: 0,
                         cummulative_points: Number(authContext.cartRestaurant.restaurant.points_per_purchase),
@@ -365,7 +365,6 @@ export default function Checkout(){
 
     return(
         <View style={{backgroundColor: 'white', width: '100%'}}>
-            {console.log(authContext.cart)}
             <Text style={{marginTop: 70, alignSelf: 'center', fontWeight: 'bold', fontSize: 16}}>Checkout</Text>
             <Text style={{alignSelf: 'center', fontWeight: 'bold', fontSize: 17, color: '#119aa3'}}>{authContext.cartRestaurant.restaurant.name}</Text>
             <ScrollView showsVerticalScrollIndicator={false} style={{height: Dimensions.get("screen").height, width: '100%', backgroundColor: 'white', paddingHorizontal: 20, paddingTop: 50}}>
@@ -379,7 +378,7 @@ export default function Checkout(){
                         <View style={{flexDirection: 'row', width: '100%'}}>
                             <MaterialCommunityIcons style={{paddingVertical: 10}} size={17} color = 'gray' name="credit-card-outline" />
                             <Text style={{paddingVertical: 10, marginLeft: 10, fontWeight: 'bold', color: 'gray'}}>Payment method </Text>
-                            <Text style={{position: 'absolute', right: 20, paddingVertical: 10, color: 'gray'}}>Drinkly Cash</Text>
+                            <Text style={{position: 'absolute', right: 20, paddingVertical: 10, color: 'gray'}}>{authContext.paymentMethod}</Text>
                             <MaterialCommunityIcons style={{paddingVertical: 10, position: 'absolute', right: 0}} size={17} name="chevron-right" color={'gray'} />
                         </View>
                    </TouchableOpacity>
@@ -387,7 +386,7 @@ export default function Checkout(){
                 <View style={{marginTop: 10}}>
                     <Text style={{fontWeight: 'bold', marginTop: 50}}>Pickup time</Text>
                     <Text style={{color: 'gray', marginBottom: 5, marginTop: 5}}>Select an approximate pickup time for the store to have your order ready by. </Text>
-                    <View style={{flexDirection: 'row', alignItems: 'center', alignSelf: 'center', marginTop: 0, marginBottom: 100}}>
+                    <View style={{flexDirection: 'row', alignItems: 'center', alignSelf: 'center', marginTop: 0, marginBottom: 130}}>
                         <View style={{flexDirection: 'column'}}>
 
                             <Picker
@@ -425,7 +424,6 @@ export default function Checkout(){
                     {authContext.afterClose ? <Text style={{alignSelf: 'center', fontSize: 12, color: 'gray', textAlign: 'center', marginTop: 10, width: 200}}> The store is closed today. Please select a time for future pickup. </Text> : null}
 
                 </View>
-                {console.log(authContext.cartRestaurant)}
 
 
             </ScrollView>
@@ -438,7 +436,7 @@ export default function Checkout(){
                 // } else{
                 // }
             }}>
-                    <Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', fontSize: 16}}>Place Order (${authContext.rounded(authContext.cartSubTotal).toFixed(2)})</Text>
+                    <Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', fontSize: 16}}>Place Order (${authContext.rounded(authContext.cartSubTotal + authContext.taxes + authContext.serviceFee + authContext.tip).toFixed(2)})</Text>
             </TouchableOpacity> 
             </View>
             <TouchableOpacity
