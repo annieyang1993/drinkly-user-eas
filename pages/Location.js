@@ -4,15 +4,37 @@ import { Switch, Modal, ScrollView, TouchableOpacity, StyleSheet, Text, View, Di
 import {Firebase, db} from '../config/firebase';
 import AuthContext from '../context/Context';
 import InputField from '../components/InputField'
+import * as Location from 'expo-location';
 
 export default function PersonalInformation({navigation}){
     const authContext = useContext(AuthContext);
     const auth = Firebase.auth();
-     const toggleSwitch = () => {
+     const toggleSwitch = async () => {
          if (authContext.locationSet===true){
              authContext.setLocationSet(!authContext.locationSet)
+             authContext.setLocation();
+             authContext.setUserCity();
+            authContext.setUserCountry();
+             //authContext.setRestaurants({});
          } else{
-             authContext.getLocation();
+             //authContext.setLocationSet(true);
+            let { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                authContext.setLocationSet(false);
+                
+                return;
+            } else{
+                let location = await Location.getCurrentPositionAsync({accuracy: Location.Accuracy.Highest});
+                await authContext.setLocation(location)
+                await authContext.setLocationSet(true);
+                const loc = await Location.reverseGeocodeAsync(location["coords"]).then((loc)=>{
+                    //authContext.getRestaurants(loc[0]["city"], loc[0]["country"]);
+                    authContext.setUserCity(loc[0]["city"]);
+                    authContext.setUserCountry(loc[0]["country"]);
+                });
+                
+                
+            }
          }
          
      }

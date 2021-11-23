@@ -11,9 +11,9 @@ const Stack = createStackNavigator();
 
 const SplashScreen = ({navigation}) => (
     <SafeAreaView style={styles.screen}>
-        <Image style = {styles.logo} source={require("../assets/logo-blue.png")}/>
-        <Image style = {styles.image} source={require("../assets/Splash1.png")}/>
-            <TouchableHighlight underlayColor="#7fd9df" style={styles.register} title="register"
+        <Image style = {styles.logo} source={require("../assets/Logo.png")}/>
+        <Image style = {styles.image} source={require("../assets/home-page-icon.png")}/>
+            <TouchableHighlight underlayColor="#119aa3" style={styles.register} title="register"
             onPress={()=>navigation.navigate("Signup")}>
                 <Text style={styles.registerText}>Register</Text></TouchableHighlight>
         
@@ -47,7 +47,7 @@ export default function AuthStack() {
   },
 
   image: {
-      width: Dimensions.get("screen").width*0.85,
+      width: Dimensions.get("screen").width*0.5,
       height: Dimensions.get("screen").width*0.85,
       resizeMode: 'contain',
       flexDirection: 'column',
@@ -63,7 +63,7 @@ export default function AuthStack() {
 
   login: {
     position: 'absolute',
-    backgroundColor: "#a1a8a8",
+    backgroundColor: "#d2d5d5",
     borderRadius: 25,
     flexDirection: "row",
     width: '95%',
@@ -74,26 +74,35 @@ export default function AuthStack() {
     textDecorationColor: 'white',
     alignItems: 'center',
     justifyContent: 'center',
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    shadowColor: 'black', 
+    shadowOffset: {width: 2, height: 2}, 
+    shadowRadius: 3, 
+    shadowOpacity: 0.6
     
   },
 
   register: {
     position: 'absolute',
     backgroundColor: "#44bec6",
-    borderRadius: 25,
+    borderRadius: 20,
     flexDirection: "row",
     width: '95%',
     padding: 15,
-    bottom: 90,
+    bottom: 100,
     textDecorationColor: 'white',
     fontWeight: 'bold',
     justifyContent: 'center',  
+    shadowColor: 'black', 
+    shadowOffset: {width: 2, height: 2}, 
+    shadowRadius: 3, 
+    shadowOpacity: 0.6
   },
 
   loginText: {
       textDecorationColor: 'white',
       fontWeight: 'bold',
+      fontSize: 15
       
   },
 
@@ -101,6 +110,7 @@ export default function AuthStack() {
       color: 'white',
       textDecorationColor: 'white',
       fontWeight: 'bold',
+      fontSize: 15
       
   },
 
@@ -108,14 +118,17 @@ export default function AuthStack() {
       color: 'black',
       textDecorationColor: 'white',
       fontWeight: 'bold',
+      fontSize: 15
       
+
   },
 
   logo: {
-    width: "40%",
+    width: "50%",
     height: "8%",
     resizeMode: 'contain',
-    alignSelf: 'center'
+    alignSelf: 'center',
+    marginTop: 10
     
   }
   

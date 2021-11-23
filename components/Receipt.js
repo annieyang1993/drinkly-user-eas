@@ -67,6 +67,7 @@ export default function Receipt(){
                 }}
                 onPress={() => {
                     navigation.navigate("Orders");
+                    authContext.setCartBool(false);
                     authContext.updateCart([]);
                     authContext.updateCartRestaurant();
                     authContext.setItemTotals([]);

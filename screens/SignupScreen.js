@@ -28,6 +28,8 @@ export default function SignupScreen({ navigation }) {
   const [firstNameEntered, setFirstNameEntered] = useState(false);
   const [lastNameEntered, setLastNameEntered] = useState(false);
   const [numberEntered, setNumberEntered] = useState(false);
+  const [passwordAgain, setPasswordAgain] = useState('')
+  const [secondPasswordEntered, setSecondPasswordEntered] = useState(false);
   
 
   const handlePasswordVisibility = () => {
@@ -40,65 +42,110 @@ export default function SignupScreen({ navigation }) {
     }
   };
 
+  const checkNumber = (number) => {
+        const numberArray = number.split('');
+        const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
+        if (numberArray.length!==12){
+            return false;
+        }
+
+        numberArray.map((n, i)=>{
+            if (n!=='-'){
+
+            if (!numbers.includes(Number(n))){
+                return false;
+            }
+            }
+
+        })
+
+        return true;
+    }
+
+    //EVENTUALLY WE MUST CHECK EMAIL VALIDITY AND SEND VALIDATION EMAIL.
+    const checkEmail = (email) => {
+        
+    }
+
   const onHandleSignup = async () => {
-    try {
-      if (email !== '' && password !== '' && firstName !=='' && lastName !=='' && number!=='') {
-        auth.createUserWithEmailAndPassword(email, password)
-        .then(function(cred){
-          Firebase.firestore().collection('users').doc(`${cred.user.uid}`).set({firstName: firstName, lastName: lastName, number: number, email: email}, {merge: true}).then(()=>{
+    if (email !== '' && password !== '' && firstName !=='' && lastName !=='' && number!=='') {
+
+      if (checkNumber(number) === false){
+        setSignupError('Please enter a valid phone number.');
+      } else if (password!==passwordAgain){
+        setSignupError('Passwords do not match.')
+      } else{
+        await auth.createUserWithEmailAndPassword(email, password)
+          .then(function(cred){
+            Firebase.firestore().collection('users').doc(`${cred.user.uid}`).set({firstName: firstName, lastName: lastName, number: number, email: email}, {merge: true}).then(()=>{
           })
+          
+          })
+          .catch((error)=>{
+            if (error.message === 'The email address is badly formatted.'){
+              setSignupError('Please enter a valid email address.');
+            } else{
+              setSignupError(error.message);
+            }
+            
         });
-      }
         //const data2 = await setDoc(doc(db, "users", `${data.user.uid}`))
         //const { user } = useContext(AuthenticatedUserContext);
-      
-      
-    } catch (error) {
-        if (error.message==="The email address is badly formatted."){
-            setSignupError("The email address you've entered is invalid.");
-        } else{
-          setSignupError(error.message);
-        }
- 
-    }
+      }
+  }
     if (password===''){
         setPasswordEntered(true);
+        setSignupError("Please enter all required credentials.");
     } else{
         setPasswordEntered(false);
     }
     if (email===''){
         setEmailEntered(true);
+
+        setSignupError("Please enter all required credentials.");
     } else{
         setEmailEntered(false);
     }
     if (firstName===''){
         setFirstNameEntered(true);
+        setSignupError("Please enter all required credentials.");
     } else{
         setFirstNameEntered(false);
     }
     if (lastName===''){
         setLastNameEntered(true);
+        setSignupError("Please enter all required credentials.");
     } else{
         setLastNameEntered(false);
     }
     if (number===''){
         setNumberEntered(true);
+        setSignupError("Please enter all required credentials.");
     } else{
         setNumberEntered(false);
+    }
+
+    if (passwordAgain === ''){
+      setSecondPasswordEntered(true);
+      setSignupError("Please enter password again.");
+    } else{
+      setSecondPasswordEntered(false);
     }
 
   };
 
   return (
     <View style={styles.container}>
-      <StatusBar style='dark-content' />
+      
       <TouchableOpacity onPress={()=>navigation.navigate("Splash")}>
         <MaterialCommunityIcons name="arrow-left" size={25} color={'#676868'}/>
       </TouchableOpacity>
-      <Image style = {styles.logo} source={require("../assets/logo-blue.png")}/>
-            <Text style={styles.title}></Text>
+      <Image style = {styles.logo} source={require("../assets/Logo.png")}/>
 
       <View style= {{flexDirection: 'row'}}>
+
+      <View style={{width: '49%', float: 'left', marginTop: 10}}>
+      <Text style={{fontWeight: 'bold', color: 'gray'}}>First name</Text>
 
       <InputField
         inputStyle={{
@@ -106,52 +153,50 @@ export default function SignupScreen({ navigation }) {
         }}
         containerStyle={{
           backgroundColor: '#fff',
-          float: 'left',
-          width: '49%',
           backgroundColor: "#e2e4e4",
-          borderRadius: 25,
+          borderRadius: 5,
           paddingVertical: 10,
           marginVertical: 0,
           height: 40
 
         }}
-        leftIcon="account"
         placeholder='Enter first name'
         keyboardType='default'
         textContentType='givenName'
-        autoFocus={true}
         value={firstName}
         onChangeText={text => setFirstName(text)}
       />
+      </View>
 
+      <View style={{width: '49%', float: 'right', marginTop: 10, marginLeft: '2%',}}>
+      <Text style={{fontWeight: 'bold', color: 'gray'}}>Last name</Text>
       <InputField
         inputStyle={{
           fontSize: 14
         }}
         containerStyle={{
           backgroundColor: '#fff',
-          float: 'left',
-          width: '49%',
           backgroundColor: "#e2e4e4",
-          borderRadius: 25,
+          borderRadius: 5,
           paddingVertical: 10,
           marginVertical: 0,
           height: 40,
-          marginLeft: '2%'
+          
+          width: '100%'
         }}
 
-        leftIcon='account'
         placeholder='Enter last name'
         keyboardType='default'
         textContentType='familyName'
-        autoFocus={true}
         value={lastName}
         onChangeText={text => setLastName(text)}
       />
+      </View>
     
       </View>
 
       <ErrorMessage error={' '} visible={true}/>
+      <Text style={{fontWeight: 'bold', color: 'gray'}}>Email</Text>
       <InputField
         inputStyle={{
           fontSize: 14
@@ -161,21 +206,19 @@ export default function SignupScreen({ navigation }) {
           float: 'left',
           flexDirection: 'row',
           backgroundColor: "#e2e4e4",
-          borderRadius: 25,
+          borderRadius: 5,
           padding: 10,
           marginVertical: 0,
         }}
-        leftIcon='email'
         placeholder='Enter email'
         autoCapitalize='none'
         keyboardType='email-address'
         textContentType='emailAddress'
-        autoFocus={true}
         value={email}
         onChangeText={text => setEmail(text)}
       />
       <ErrorMessage error={' '} visible={true} />
-
+      <Text style={{fontWeight: 'bold', color: 'gray'}}>Phone number</Text>
       <InputField
         inputStyle={{
           fontSize: 14
@@ -185,21 +228,32 @@ export default function SignupScreen({ navigation }) {
           float: 'left',
           flexDirection: 'row',
           backgroundColor: "#e2e4e4",
-          borderRadius: 25,
+          borderRadius: 5,
           padding: 10,
           marginVertical: 0,
         }}
-        leftIcon='phone'
         placeholder='Enter phone number'
         keyboardType='phone-pad'
         textContentType='telephoneNumber'
-        autoFocus={true}
         value={number}
-        onChangeText={text => setNumber(text)}
+        maxLength = {12}
+        onChangeText={text => {
+          if (text.length === 3){
+            setNumber(text+'-');
+          } else if (text.length === 7){
+            setNumber(text+'-');
+          } else{
+            setNumber(text);
+
+          }
+
+        }
+          
+          }
       />
 
      <ErrorMessage error={' '} visible={true} />
-
+      <Text style={{fontWeight: 'bold', color: 'gray'}}>Enter password</Text>
       <InputField
         inputStyle={{
           fontSize: 14
@@ -209,21 +263,44 @@ export default function SignupScreen({ navigation }) {
           float: 'left',
           flexDirection: 'row',
           backgroundColor: "#e2e4e4",
-          borderRadius: 25,
+          borderRadius: 5,
           padding: 10,
           marginVertical: 0,
         }}
-        leftIcon='lock'
         placeholder='Enter password'
         autoCapitalize='none'
         autoCorrect={false}
-        secureTextEntry={passwordVisibility}
+        secureTextEntry={true}
         textContentType='password'
-        rightIcon={rightIcon}
         value={password}
         onChangeText={text => setPassword(text)}
         handlePasswordVisibility={handlePasswordVisibility}
       />
+      <ErrorMessage error={' '} visible={true} />
+      <Text style={{fontWeight: 'bold', color: 'gray'}}>Enter password again</Text>
+      <InputField
+        inputStyle={{
+          fontSize: 14
+        }}
+        containerStyle={{
+          backgroundColor: '#fff',
+          float: 'left',
+          flexDirection: 'row',
+          backgroundColor: "#e2e4e4",
+          borderRadius: 5,
+          padding: 10,
+          marginVertical: 0,
+        }}
+        placeholder='Enter password again'
+        autoCapitalize='none'
+        autoCorrect={false}
+        secureTextEntry={true}
+        textContentType='password'
+        value={passwordAgain}
+        onChangeText={text => setPasswordAgain(text)}
+        handlePasswordVisibility={handlePasswordVisibility}
+      />
+
       <Button
         onPress={onHandleSignup}
        backgroundColor='#44bec6'
@@ -231,14 +308,18 @@ export default function SignupScreen({ navigation }) {
         tileColor='#fff'
         titleSize={15}
         containerStyle={{
-          marginBottom: 24,
-          marginTop: 12,
-          borderRadius: 25
+          marginBottom: 20,
+          marginTop: 30,
+          borderRadius: 25,
+          shadowColor: 'black', 
+          shadowOffset: {width: 2, height: 2}, 
+          shadowRadius: 3, 
+          shadowOpacity: 0.6
         }}
       />
 
     <View style={{alignSelf: 'center'}}>
-    {signupError ? <ErrorMessage error={signupError} visible={true} /> : 
+    {signupError!== '' ? <ErrorMessage error={signupError} visible={true} /> : 
     <Text>{emailEntered || passwordEntered || firstNameEntered || lastNameEntered || numberEntered? <ErrorMessage error={"Please enter all required credentials."} visible={emailEntered}/> : <ErrorMessage error={" "} visible={true}/>}</Text>}
     </View>
 
@@ -272,11 +353,12 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     paddingBottom: 24
   },
-      logo: {
+    logo: {
     width: "40%",
     height: "8%",
     resizeMode: 'contain',
-    alignSelf: 'center'
+    alignSelf: 'center',
+    marginTop: -10
     
   }
 });

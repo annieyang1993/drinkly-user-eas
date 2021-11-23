@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import {TouchableHighlight, TouchableOpacity, ScrollView, SlideModal, Modal, TextInput, View, Text, StyleSheet, Dimensions, Image, ActivityIndicator } from 'react-native'
+import {Linking, TouchableHighlight, TouchableOpacity, ScrollView, SlideModal, Modal, TextInput, View, Text, StyleSheet, Dimensions, Image, ActivityIndicator } from 'react-native'
 import AuthContext from '../context/Context';
 import {getDistance, getPreciseDistance} from 'geolib';
 import {MaterialCommunityIcons} from '@expo/vector-icons';
@@ -927,8 +927,19 @@ function ItemModal({item, selections}){
 
         <View style={{flexDirection: 'row'}}>
         <View style={{width: '85%'}}>
+
         <Text style={{fontSize: 13, marginTop: 5, color: 'gray', marginHorizontal: 10}}>{route.params.restaurant["street"][0]}, {route.params.restaurant["city"]}, {route.params.restaurant["state"]}</Text>
+
         <Text style={{fontSize: 13, marginTop: 5, color: 'gray', marginHorizontal: 10}}>Operating hours: {route.params.times[weekdays[date.getDay()]]["open"]} - {route.params.times[weekdays[date.getDay()]]["close"]}</Text>        
+        
+        <TouchableOpacity style={{flexDirection: 'row'}}
+        onPress={()=>{Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${route.params.restaurant["street"][0].split(' ').join("+")}%2C+${route.params.restaurant["state"].split(' ').join('+')}&travelmode=walking`);}}>
+            
+            <MaterialCommunityIcons name='map-marker' size={18} color='gray' style={{marginTop: 23, marginLeft: 5}}/>
+            <Text style={{marginHorizontal: 1, marginTop: 25, color: 'gray'}}> View in Google Maps</Text>
+        </TouchableOpacity>
+
+        
         </View>
 
       {authContext.savedRestaurants.includes(`${String(route.params.restaurant["name"])}-${String(route.params.restaurant["street"][0])}-${String(route.params.restaurant["city"])}`) ? 
@@ -946,13 +957,7 @@ function ItemModal({item, selections}){
         <RenderContent/>
         <View style={{height: 200}}></View>
       </ScrollView>
-      {authContext.cart.length === 0 ? null : 
-      <TouchableOpacity style={{position: 'absolute', bottom: '21%', right: '5%', alignSelf: 'center', paddingVertical: 11, paddingHorizontal: 30, backgroundColor: '#119aa3', borderRadius: 20, textAlign: 'center'}} 
-      onPress={()=>setWeekdayAndTimeArrays().then(()=>navigation.navigate("Cart"))}>
-        <View ><Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', fontSize: 16}}>
-          <MaterialCommunityIcons name="cart" color='white' size={18} style={{paddingRight: 10}}/>
-            {authContext.cartNumber}</Text></View>
-      </TouchableOpacity> }
+
       </View>
       <TouchableOpacity onPress={()=>navigation.pop(1)}
       style={{marginTop: 40, marginLeft: 10, position: 'absolute', padding: 5}}><MaterialCommunityIcons name="arrow-left" color={'white'} size={25}/>

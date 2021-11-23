@@ -1,7 +1,7 @@
 import React, { useContext, useState, useMemo, useEffect} from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import { NavigationContainer, useNavigation } from '@react-navigation/native';
+import { NavigationContainer, useNavigation, useRoute } from '@react-navigation/native';
 import {SafeAreaView, Modal, StyleSheet, Text, View, Button as RNButton, TouchableOpacity, Dimensions } from 'react-native';
 import 'firebase/firestore'
 import AuthContext from '../context/Context'
@@ -44,6 +44,7 @@ function TabNavigator(){
             <Tab.Navigator
                 independent={true}
                 activeBackgroundColor='red'
+                initialRouteName='Search'
                 screenOptions={{
                 tintColor: 'red',
                 activeColor: 'red',
@@ -55,7 +56,7 @@ function TabNavigator(){
                     top: 0
                 },
                 tabBarActiveTintColor:'#119aa3',
-                headerShown: false  
+                headerShown: false
                 }}>
                 
                 <Tab.Screen 
@@ -115,6 +116,8 @@ export default function HomeStack(){
     const [prevScreen, setPrevScreen] = useState('')
     const [prevScreenParams, setPrevScreenParams] = useState({})
     const [cartNumber, setCartNumber] = useState(0)
+    const [userCity, setUserCity] = useState();
+    const [userCountry, setUserCountry] = useState();
     
     
     const [drinklyCash, setDrinklyCash] = useState(false);
@@ -131,6 +134,7 @@ export default function HomeStack(){
     const [quickCheckoutObject, setQuickCheckoutObject] = useState({})
     const [discountCode, setDiscountCode] = useState('')
     const [discount,setDiscount] = useState(0)
+    const [cartBool, setCartBool] = useState(false);
 
     
     const [tip, setTip] = useState(0);
@@ -146,16 +150,16 @@ export default function HomeStack(){
     const Stack = createStackNavigator();
 
 
-    const getRestaurants = async () =>{
+    const getRestaurants = async (city, country) =>{ 
         const userDataTemp = await getUser();
         const collect = await Firebase.firestore().collection('restaurants').get();
-        let tempList;
+        var tempList = {}
         const savedRestaurantsTemp = [];
         const savedRestaurantsObjectTemp = {};
         await collect.docs.map((doc, i)=>{
-            tempList = restaurants;
-            tempList[i] = doc.data();
-            setRestaurants(tempList);
+            tempList[i] = doc.data();   
+            console.log(doc.data());
+                    
             if (userDataTemp["saved"]!==undefined){
                 if (userDataTemp["saved"].includes(doc.id)){
                     savedRestaurantsTemp.push(doc.id);
@@ -164,6 +168,8 @@ export default function HomeStack(){
             }
 
         })
+        setRestaurants(tempList); 
+        
 
         const quickCheckout = await Firebase.firestore().collection('users').doc(user.uid).collection('quick_checkout').orderBy('created_at', 'desc').limit(4).get();
         const quickCheckoutObjectTemp = {}
@@ -199,6 +205,12 @@ export default function HomeStack(){
             let location = await Location.getCurrentPositionAsync({accuracy: Location.Accuracy.Highest});
             setLocation(location);
             setLocationSet(true);
+            const loc = await Location.reverseGeocodeAsync(location["coords"]).then((loc)=>{
+                getRestaurants(loc[0]["city"], loc[0]["country"]);
+                setUserCity(loc[0]["city"]);
+                setUserCountry(loc[0]["country"]);
+            });
+            
         }
     }
 
@@ -254,9 +266,8 @@ export default function HomeStack(){
     //     })
     // }
 
-    useEffect(()=>{
+    useEffect(async ()=>{
         Geocoder.init("AIzaSyB9fx4NpEW1D65AvgJjzY-npVoFUf17FRg");
-        getRestaurants();
         getLocation();
         getOrders();
         getPoints();
@@ -265,7 +276,7 @@ export default function HomeStack(){
 
 
 
-        // Firebase.firestore().collection('restaurants').doc('Dineen Coffee Co.-140 Yonge St-Toronto').set({
+        // Firebase.firestore().collection('cafes').doc('cafes').collection('Toronto, Canada').doc('Dineen Coffee Co.-140 Yonge St-Toronto').set({
         //     city: 'Toronto',
         //     country: 'Canada',
         //     description: 'Polished cafe bordered by a red leather banquet serves sandwiches & bakery fare in a historic space.',
@@ -278,234 +289,17 @@ export default function HomeStack(){
         //     price_level: 3,
         //     sections: ['Espresso Drinks', 'Drip Coffee & Tea', 'Iced Drinks', 'Breakfast Cups'],
         //     state: 'Ontario',
-        //     street: ['140 Yonge St']
+        //     street: ['140 Yonge St'],
+        //     restaurant_id: 'Dineen Coffee Co.-140 Yonge St-Toronto',
+        //     max_points: 10,
+        //     max_reward_cost: 5,
+        //     points_per_purchase: 1,
+        //     preward_type: 'Drink',
+        //     rewards: true,
+        //     rewards_card_pic: 'https://s3-media0.fl.yelpcdn.com/bphoto/Gcra-6PJtd6nXPIi4ubmmQ/o.jpg'
         // })
 
-        // Firebase.firestore()
-        // .collection('restaurants')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
-        // .collection('operating hours')
-        // .doc('Monday').set({open: '6:30 am', close: '6:30 pm'})
-
-        // Firebase.firestore()
-        // .collection('restaurants')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
-        // .collection('operating hours')
-        // .doc('Tuesday').set({open: '6:30 am', close: '6:30 pm'})
-
-        // Firebase.firestore()
-        // .collection('restaurants')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
-        // .collection('operating hours')
-        // .doc('Wednesday').set({open: '6:30 am', close: '6:30 pm'})
-
-        // Firebase.firestore()
-        // .collection('restaurants')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
-        // .collection('operating hours')
-        // .doc('Thursday').set({open: '6:30 am', close: '6:30 pm'})
-
-        // Firebase.firestore()
-        // .collection('restaurants')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
-        // .collection('operating hours')
-        // .doc('Friday').set({open: '6:30 am', close: '6:30 pm'})
-
-        // Firebase.firestore()
-        // .collection('restaurants')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
-        // .collection('operating hours')
-        // .doc('Saturday').set({open: '8:30 am', close: '6:30 pm'})
-
-        // Firebase.firestore()
-        // .collection('restaurants')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
-        // .collection('operating hours')
-        // .doc('Sunday').set({open: '8:30 am', close: '6:30 pm'})
-
-        // Firebase.firestore()
-        // .collection('restaurants')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
-        // .collection('items')
-        // .doc('Americano')
-        // .set({
-        //     name: 'Americano',
-        //     price: 3.25,
-        //     section: 'Espresso Drinks',
-        //     description: 'Double shot of espresso with hot water.',
-        // })
-
-        // Firebase.firestore()
-        // .collection('restaurants')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
-        // .collection('items')
-        // .doc('Espresso')
-        // .set({
-        //     name: 'Espresso',
-        //     price: 2,
-        //     section: 'Espresso Drinks',
-        //     description: 'The Temperance Blend has a creamy mouth feel, is full bodied, sweet & balanced.',
-        // })
-
-        // Firebase.firestore()
-        // .collection('restaurants')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
-        // .collection('items')
-        // .doc('Americano Misto')
-        // .set({
-        //     name: 'Americano Misto',
-        //     price: 3.85,
-        //     section: 'Espresso Drinks',
-        //     description: 'Double shot of espresso with hot water & a dollop of steamed milk.',
-        // })
-
-
-        // Firebase.firestore()
-        // .collection('restaurants')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
-        // .collection('items')
-        // .doc('Latte')
-        // .set({
-        //     name: 'Latte',
-        //     price: 4.35,
-        //     section: 'Espresso Drinks',
-        //     description: 'Two shots of espresso, steamed milk & a layer of foam on top. The classic milk & espresso drink.',
-        // })
-
-        // Firebase.firestore()
-        // .collection('restaurants')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
-        // .collection('items')
-        // .doc('Flat White')
-        // .set({
-        //     name: 'Flat White',
-        //     price: 3.60,
-        //     section: 'Espresso Drinks',
-        //     description: 'Double shot of espresso with fresh, steamed milk poured over it. Perfect for those who like a latte with a little less foam.',
-        // })
-
-        ///////////
-
-        // Firebase.firestore()
-        // .collection('restaurants')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
-        // .collection('items')
-        // .doc('Temperance Brew')
-        // .set({
-        //     name: 'Temperance Brew',
-        //     price: 2.50,
-        //     section: 'Drip Coffee & Tea',
-        //     description: 'The temperance blend has a creamy mouth feel, is full bodied, sweet & balanced. Self serve milk station at pickup.',
-        // })
-
-        // Firebase.firestore()
-        // .collection('restaurants')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
-        // .collection('items')
-        // .doc('Red Eye')
-        // .set({
-        //     name: 'Red Eye',
-        //     price: 3.50,
-        //     section: 'Drip Coffee & Tea',
-        //     description: 'Brew coffee with a shot of espresso.',
-        // })
-
-        // Firebase.firestore()
-        // .collection('restaurants')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
-        // .collection('items')
-        // .doc('Chai Latte')
-        // .set({
-        //     name: 'Chai Latte',
-        //     price: 4.35,
-        //     section: 'Drip Coffee & Tea',
-        //     description: 'Aromatic spiced black tea blended with steamed milk, flavoured with house made chai syrup.',
-        // })
-
-        // Firebase.firestore()
-        // .collection('restaurants')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
-        // .collection('items')
-        // .doc('London Fog')
-        // .set({
-        //     name: 'London Fog',
-        //     price: 4.35,
-        //     section: 'Drip Coffee & Tea',
-        //     description: 'Earl Grey tea with steamed milk & housemade vanilla syrup.',
-        // })
-
-        // Firebase.firestore()
-        // .collection('restaurants')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
-        // .collection('items')
-        // .doc('Iced Americano')
-        // .set({
-        //     name: 'Iced Americano',
-        //     price: 4.35,
-        //     section: 'Iced Drinks',
-        //     description: 'Double shot of espresso with cold water over ice.',
-        // })
-
-        // Firebase.firestore()
-        // .collection('restaurants')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
-        // .collection('items')
-        // .doc('Iced Latte')
-        // .set({
-        //     name: 'Iced Latte',
-        //     price: 4.45,
-        //     section: 'Iced Drinks',
-        //     description: 'Two shots of espresso and milk on top over ice. The classic milk & espresso drink.',
-        // })
-
-        // Firebase.firestore()
-        // .collection('restaurants')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
-        // .collection('items')
-        // .doc('Iced Mocha')
-        // .set({
-        //     name: 'Iced Mocha',
-        //     price: 5.15,
-        //     section: 'Iced Drinks',
-        //     description: 'Espresso & dark chocolate ganache with milk over ice.',
-        // })
-
-        // Firebase.firestore()
-        // .collection('restaurants')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
-        // .collection('items')
-        // .doc('Iced Vanilla Latte')
-        // .set({
-        //     name: 'Iced Vanilla Latte',
-        //     price: 4.75,
-        //     section: 'Iced Drinks',
-        //     description: 'Espresso & housemade vanilla syrup with milk over ice.',
-        // })
-
-        // Firebase.firestore()
-        // .collection('restaurants')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
-        // .collection('items')
-        // .doc('Greek Yogurt Parfait')
-        // .set({
-        //     name: 'Greek Yogurt Parfait',
-        //     price: 4.29,
-        //     section: 'Breakfast Cups',
-        //     description: 'With Banana Bread Granola & Fresh Berries.',
-        // })
-
-        // Firebase.firestore()
-        // .collection('restaurants')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
-        // .collection('items')
-        // .doc('Coconut Chia, Pineapple & Granola')
-        // .set({
-        //     name: 'Coconut Chia, Pineapple & Granola',
-        //     price: 4.29,
-        //     section: 'Breakfast Cups',
-        // })
-
-        // Firebase.firestore().collection('restaurants').doc('Fahrenheit Coffee-120 Lombard St-Toronto').set({
+        // Firebase.firestore().collection('cafes').doc('cafes').collection('Toronto, Canada').doc('Fahrenheit Coffee-120 Lombard St-Toronto').set({
         //     city: 'Toronto',
         //     country: 'Canada',
         //     description: 'Specialty coffee drinks made with house-roasted beans are poured, plus light fare & baked goods.',
@@ -518,53 +312,289 @@ export default function HomeStack(){
         //     price_level: 2,
         //     sections: ['Espresso', 'Hot Drinks'],
         //     state: 'Ontario',
-        //     street: ['120 Lombard St']
+        //     street: ['120 Lombard St'],
+        //     max_points: 10,
+        //     max_reward_cost: 5,
+        //     points_per_purchase: 1,
+        //     preward_type: 'Drink',
+        //     rewards: true,
+        //     rewards_card_pic: 'https://s3-media0.fl.yelpcdn.com/bphoto/Gcra-6PJtd6nXPIi4ubmmQ/o.jpg',
+        //     restaurant_id: 'Fahrenheit Coffee-120 Lombard St-Toronto',
+        // })
+
+        // const isThere = await Firebase.firestore().collection('cafes').doc('cafes').collection('Toronto, United States').get();
+        // console.log(isThere.docs)
+
+        // Firebase.firestore()
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
+        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('operating hours')
+        // .doc('Monday').set({open: '6:30 am', close: '6:30 pm'})
+
+        // Firebase.firestore()
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
+        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('operating hours')
+        // .doc('Tuesday').set({open: '6:30 am', close: '6:30 pm'})
+
+        // Firebase.firestore()
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
+        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('operating hours')
+        // .doc('Wednesday').set({open: '6:30 am', close: '6:30 pm'})
+
+        // Firebase.firestore()
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
+        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('operating hours')
+        // .doc('Thursday').set({open: '6:30 am', close: '6:30 pm'})
+
+        // Firebase.firestore()
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
+        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('operating hours')
+        // .doc('Friday').set({open: '6:30 am', close: '6:30 pm'})
+
+        // Firebase.firestore()
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
+        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('operating hours')
+        // .doc('Saturday').set({open: '8:30 am', close: '6:30 pm'})
+
+        // Firebase.firestore()
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
+        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('operating hours')
+        // .doc('Sunday').set({open: '8:30 am', close: '6:30 pm'})
+
+        // Firebase.firestore()
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
+        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('items')
+        // .doc('Americano')
+        // .set({
+        //     name: 'Americano',
+        //     price: 3.25,
+        //     section: 'Espresso Drinks',
+        //     description: 'Double shot of espresso with hot water.',
         // })
 
         // Firebase.firestore()
-        // .collection('restaurants')
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
+        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('items')
+        // .doc('Espresso')
+        // .set({
+        //     name: 'Espresso',
+        //     price: 2,
+        //     section: 'Espresso Drinks',
+        //     description: 'The Temperance Blend has a creamy mouth feel, is full bodied, sweet & balanced.',
+        // })
+
+        // Firebase.firestore()
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
+        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('items')
+        // .doc('Americano Misto')
+        // .set({
+        //     name: 'Americano Misto',
+        //     price: 3.85,
+        //     section: 'Espresso Drinks',
+        //     description: 'Double shot of espresso with hot water & a dollop of steamed milk.',
+        // })
+
+
+        // Firebase.firestore()
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
+        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('items')
+        // .doc('Latte')
+        // .set({
+        //     name: 'Latte',
+        //     price: 4.35,
+        //     section: 'Espresso Drinks',
+        //     description: 'Two shots of espresso, steamed milk & a layer of foam on top. The classic milk & espresso drink.',
+        // })
+
+        // Firebase.firestore()
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
+        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('items')
+        // .doc('Flat White')
+        // .set({
+        //     name: 'Flat White',
+        //     price: 3.60,
+        //     section: 'Espresso Drinks',
+        //     description: 'Double shot of espresso with fresh, steamed milk poured over it. Perfect for those who like a latte with a little less foam.',
+        // })
+
+        // /////////
+
+        // Firebase.firestore()
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
+        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('items')
+        // .doc('Temperance Brew')
+        // .set({
+        //     name: 'Temperance Brew',
+        //     price: 2.50,
+        //     section: 'Drip Coffee & Tea',
+        //     description: 'The temperance blend has a creamy mouth feel, is full bodied, sweet & balanced. Self serve milk station at pickup.',
+        // })
+
+        // Firebase.firestore()
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
+        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('items')
+        // .doc('Red Eye')
+        // .set({
+        //     name: 'Red Eye',
+        //     price: 3.50,
+        //     section: 'Drip Coffee & Tea',
+        //     description: 'Brew coffee with a shot of espresso.',
+        // })
+
+        // Firebase.firestore()
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
+        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('items')
+        // .doc('Chai Latte')
+        // .set({
+        //     name: 'Chai Latte',
+        //     price: 4.35,
+        //     section: 'Drip Coffee & Tea',
+        //     description: 'Aromatic spiced black tea blended with steamed milk, flavoured with house made chai syrup.',
+        // })
+
+        // Firebase.firestore()
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
+        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('items')
+        // .doc('London Fog')
+        // .set({
+        //     name: 'London Fog',
+        //     price: 4.35,
+        //     section: 'Drip Coffee & Tea',
+        //     description: 'Earl Grey tea with steamed milk & housemade vanilla syrup.',
+        // })
+
+        // Firebase.firestore()
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
+        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('items')
+        // .doc('Iced Americano')
+        // .set({
+        //     name: 'Iced Americano',
+        //     price: 4.35,
+        //     section: 'Iced Drinks',
+        //     description: 'Double shot of espresso with cold water over ice.',
+        // })
+
+        // Firebase.firestore()
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
+        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('items')
+        // .doc('Iced Latte')
+        // .set({
+        //     name: 'Iced Latte',
+        //     price: 4.45,
+        //     section: 'Iced Drinks',
+        //     description: 'Two shots of espresso and milk on top over ice. The classic milk & espresso drink.',
+        // })
+
+        // Firebase.firestore()
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
+        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('items')
+        // .doc('Iced Mocha')
+        // .set({
+        //     name: 'Iced Mocha',
+        //     price: 5.15,
+        //     section: 'Iced Drinks',
+        //     description: 'Espresso & dark chocolate ganache with milk over ice.',
+        // })
+
+        // Firebase.firestore()
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
+        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('items')
+        // .doc('Iced Vanilla Latte')
+        // .set({
+        //     name: 'Iced Vanilla Latte',
+        //     price: 4.75,
+        //     section: 'Iced Drinks',
+        //     description: 'Espresso & housemade vanilla syrup with milk over ice.',
+        // })
+
+        // Firebase.firestore()
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
+        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('items')
+        // .doc('Greek Yogurt Parfait')
+        // .set({
+        //     name: 'Greek Yogurt Parfait',
+        //     price: 4.29,
+        //     section: 'Breakfast Cups',
+        //     description: 'With Banana Bread Granola & Fresh Berries.',
+        // })
+
+        // Firebase.firestore()
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
+        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('items')
+        // .doc('Coconut Chia, Pineapple & Granola')
+        // .set({
+        //     name: 'Coconut Chia, Pineapple & Granola',
+        //     price: 4.29,
+        //     section: 'Breakfast Cups',
+        // })
+
+        
+
+        // Firebase.firestore()
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
         // .doc('Fahrenheit Coffee-120 Lombard St-Toronto')
         // .collection('operating hours')
         // .doc('Monday').set({open: '7:00 am', close: '4:00 pm'})
 
         // Firebase.firestore()
-        // .collection('restaurants')
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
         // .doc('Fahrenheit Coffee-120 Lombard St-Toronto')
         // .collection('operating hours')
         // .doc('Tuesday').set({open: '7:00 am', close: '4:00 pm'})
 
         // Firebase.firestore()
-        // .collection('restaurants')
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
         // .doc('Fahrenheit Coffee-120 Lombard St-Toronto')
         // .collection('operating hours')
         // .doc('Wednesday').set({open: '7:00 am', close: '4:00 pm'})
 
         // Firebase.firestore()
-        // .collection('restaurants')
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
         // .doc('Fahrenheit Coffee-120 Lombard St-Toronto')
         // .collection('operating hours')
         // .doc('Thursday').set({open: '7:00 am', close: '4:00 pm'})
 
         // Firebase.firestore()
-        // .collection('restaurants')
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
         // .doc('Fahrenheit Coffee-120 Lombard St-Toronto')
         // .collection('operating hours')
         // .doc('Friday').set({open: '7:00 am', close: '4:00 pm'})
 
         // Firebase.firestore()
-        // .collection('restaurants')
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
         // .doc('Fahrenheit Coffee-120 Lombard St-Toronto')
         // .collection('operating hours')
         // .doc('Saturday').set({open: '8:00 am', close: '4:00 pm'})
 
         // Firebase.firestore()
-        // .collection('restaurants')
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
         // .doc('Fahrenheit Coffee-120 Lombard St-Toronto')
         // .collection('operating hours')
         // .doc('Sunday').set({open: '9:00 am', close: '3:00 pm'})
 
         // Firebase.firestore()
-        // .collection('restaurants')
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
         // .doc('Fahrenheit Coffee-120 Lombard St-Toronto')
         // .collection('items')
         // .doc('Cortado')
@@ -577,7 +607,7 @@ export default function HomeStack(){
         // })
 
         // Firebase.firestore()
-        // .collection('restaurants')
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
         // .doc('Fahrenheit Coffee-120 Lombard St-Toronto')
         // .collection('items')
         // .doc('Mocha')
@@ -590,7 +620,7 @@ export default function HomeStack(){
         // })
 
         // Firebase.firestore()
-        // .collection('restaurants')
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
         // .doc('Fahrenheit Coffee-120 Lombard St-Toronto')
         // .collection('items')
         // .doc('Loose Leaf Tea')
@@ -603,7 +633,7 @@ export default function HomeStack(){
         // })
 
         // Firebase.firestore()
-        // .collection('restaurants')
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
         // .doc('Fahrenheit Coffee-120 Lombard St-Toronto')
         // .collection('items')
         // .doc('Ginger Turmeric')
@@ -616,7 +646,7 @@ export default function HomeStack(){
         // })
 
         // Firebase.firestore()
-        // .collection('restaurants')
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
         // .doc('Fahrenheit Coffee-120 Lombard St-Toronto')
         // .collection('items')
         // .doc('Hot Chocolate')
@@ -628,7 +658,7 @@ export default function HomeStack(){
         // })
 
         // Firebase.firestore()
-        // .collection('restaurants')
+        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
         // .doc('Fahrenheit Coffee-120 Lombard St-Toronto')
         // .collection('items')
         // .doc('Chai Latte')
@@ -652,6 +682,138 @@ export default function HomeStack(){
             restSpeedThreshold: 0.01,
         },
     };
+
+    const setWeekdayAndTimeArrays = async ()=>{
+      setPrevScreen("Points")
+      setPrevScreenParams({})
+      const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+      var minReadyIn = 10
+      var today = new Date().getDay()
+
+    const weekDayArrayTemp = ['Today'];
+      ([1,2,3,4]).map((day, i)=>{
+          weekDayArrayTemp.push(weekdays[(today+day)%7]);
+          
+      })
+
+      setWeekDayArray(weekDayArrayTemp)
+
+      var currentTimeIncrement = new Date(new Date().getTime()+minReadyIn*60000)
+      var coeff = 1000*60*5;
+      var roundUp = new Date(Math.ceil(currentTimeIncrement.getTime()/coeff)*coeff)
+      const dateTimeArrayTemp = {}
+      var open = cartRestaurantHours[weekdays[today]]["open"]
+      var close = cartRestaurantHours[weekdays[today]]["close"]
+      var openArray = open.split(' ')[0].split(':')
+      var closeArray = close.split(' ')[0].split(':')
+      var day = new Date()
+      if (openArray.length===1){
+        if (open.split(' ')[1]==='pm'){
+          day.setHours(Number(openArray[0])+12, 0, 0)
+        } else{
+          day.setHours(Number(openArray[0]), 0, 0)
+        }
+      } else{
+        if (open.split(' ')[1]==='pm'){
+          day.setHours(Number(openArray[0])+12, openArray[1], 0)
+        } else{
+          day.setHours(Number(openArray[0]), openArray[1], 0)
+        }
+      }
+
+      var closeDay = new Date()
+      if (closeArray.length===1){
+        if (close.split(' ')[1]==='pm'){
+          closeDay.setHours(Number(closeArray[0])+12, 0, 0)
+        } else{
+          closeDay.setHours(Number(closeArray[0]), 0, 0)
+        }
+      } else{
+        if (close.split(' ')[1]==='pm'){
+          closeDay.setHours(Number(closeArray[0])+12, closeArray[1], 0)
+        } else{
+          closeDay.setHours(Number(closeArray[0]), closeArray[1], 0)
+        }
+      }
+      var afterClose = false
+      if (roundUp.getTime()>closeDay.getTime()){
+        setAfterClose(true)
+        afterClose = true;
+      }
+
+      if (roundUp.getTime()<day.getTime()){
+        setBeforeOpen(true)
+      }
+      weekDayArrayTemp.map((weekday, i)=>{
+        var times = []
+        var beforeOpen = false
+        if (i===0){
+          var j = 0;
+          if (roundUp.getTime()<day.getTime()){
+            roundUp = day;
+            beforeOpen = true;
+          }
+          while(roundUp.getTime()<=closeDay.getTime()){
+            if (j===0 && beforeOpen===false){
+                times.push(`In ${minReadyIn} mins`);              
+            } else if (j===1 && beforeOpen===false){
+              times.push(`In ${minReadyIn+10} mins`);
+            } else if (j===2 && beforeOpen===false){
+              times.push(`In ${minReadyIn+20} mins`);
+            } else{
+              times.push(roundUp.toLocaleTimeString([], {timeStyle: 'short'}));
+            }
+            roundUp = new Date(roundUp.getTime()+10*60000);
+            j+=1;
+          }
+          if (afterClose===false){
+            dateTimeArrayTemp[weekday] = times;
+          
+          }
+        } else{
+            open = cartRestaurantHours[weekday]["open"]
+            close = cartRestaurantHours[weekday]["close"]
+
+            openArray = open.split(' ')[0].split(':')
+            closeArray = close.split(' ')[0].split(':')
+            if (openArray.length===1){
+              if (open.split(' ')[1]==='pm'){
+                day.setHours(Number(openArray[0])+12, 0, 0)
+              } else{
+                day.setHours(Number(openArray[0]), 0, 0)
+              }
+            } else{
+              if (open.split(' ')[1]==='pm'){
+                day.setHours(Number(openArray[0])+12, openArray[1], 0)
+              } else{
+                day.setHours(Number(openArray[0]), openArray[1], 0)
+              }
+            }
+            if (closeArray.length===1){
+              if (close.split(' ')[1]==='pm'){
+                closeDay.setHours(Number(closeArray[0])+12, 0, 0)
+              } else{
+                closeDay.setHours(Number(closeArray[0]), 0, 0)
+              }
+            } else{
+              if (close.split(' ')[1]==='pm'){
+                closeDay.setHours(Number(closeArray[0])+12, closeArray[1], 0)
+              } else{
+                closeDay.setHours(Number(closeArray[0]), closeArray[1], 0)
+              }
+            }
+            var start = day;
+          while (start.getTime()<=closeDay.getTime()){
+            times.push(start.toLocaleTimeString([], {timeStyle: 'short'}));
+            start = new Date(start.getTime()+10*60000);
+          }
+          dateTimeArrayTemp[weekday] = times;
+        }
+
+
+      })
+      setDateTimeArray(dateTimeArrayTemp);
+    }
 
     const rounded = (number) =>{
         const separated = String(Number(number)).split(".");
@@ -680,7 +842,7 @@ export default function HomeStack(){
         }
 
     }
-
+    
 
     return(
     <AuthContext.Provider value={{user, cart, updateCart, cartRestaurant, updateCartRestaurant, 
@@ -695,7 +857,8 @@ export default function HomeStack(){
     search, setSearch, discounts, setDiscounts, savedRestaurants, setSavedRestaurants, savedRestaurantsObject, setSavedRestaurantsObject,
     quickCheckoutList, setQuickCheckoutList, quickCheckoutObject, setQuickCheckoutObject, tip, setTip, discount, setDiscount, 
     discountCode, setDiscountCode, rounded, paymentMethods, setPaymentMethods, defaultPaymentId, setDefaultPaymentId,
-    drinklyCashAmount, setDrinklyCashAmount, paymentMethod, setPaymentMethod, icon, setIcon, tipIndex, setTipIndex, tipsArray}}>
+    drinklyCashAmount, setDrinklyCashAmount, paymentMethod, setPaymentMethod, icon, setIcon, tipIndex, setTipIndex, 
+    tipsArray, cartBool, setCartBool, userCity, setUserCity, userCountry, setUserCountry, getRestaurants}}>
         <Stack.Navigator style={{height: '90%'}}>
             <Stack.Screen 
                     name="Tabs" 
@@ -708,9 +871,24 @@ export default function HomeStack(){
             <Stack.Screen name="Receipt" component={Receipt} options={{headerMode: 'none'}}/>
             <Stack.Screen name="Payment Methods" options={{title: ""}} component={PaymentMethods} options={{headerMode: 'none'}}/>     
             <Stack.Screen name="Credit Card" options={{title: ""}} component={CreditCard} options={{headerMode: 'none'}}/>     
-            <Stack.Screen name="Drinkly Cash" options={{title: ""}} component={DrinklyCash} options={{headerMode: 'none'}}/>      
+            <Stack.Screen name="Drinkly Cash" options={{title: ""}} component={DrinklyCash} options={{headerMode: 'none'}}/>   
+
+              
 
         </Stack.Navigator>
+
+        {cart.length=== 0 || cartBool === true ? null : 
+        <TouchableOpacity style={{position: 'absolute', bottom: '11%', width: '95%', alignSelf: 'center', paddingVertical: 11, paddingHorizontal: 30, backgroundColor: '#119aa3', borderRadius: 20, textAlign: 'center', shadowColor: 'black', 
+                    shadowOffset: {width: 2, height: 2}, 
+                    shadowRadius: 3, 
+                    shadowOpacity: 0.6}} onPress={()=>setWeekdayAndTimeArrays().then(()=>{navigation.navigate("Cart"); setCartBool(true)})}>
+            <View ><Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', fontSize: 16}}>
+                <MaterialCommunityIcons name="cart" color='white' size={18} style={{paddingRight: 10}}/>
+                {cartRestaurant.restaurant.name} - {cartNumber} item(s)</Text></View>
+        </TouchableOpacity> }
+
+        
+        
 
     </AuthContext.Provider>)
     

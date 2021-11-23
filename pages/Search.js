@@ -19,6 +19,8 @@ function Search({navigation}){
   const [modals, setModals] = useState({})
   const [picture1Loading, setPicture1Loading] = useState(new Array(Object.values(authContext.restaurants)).fill(false));
   const [picture2Loading, setPicture2Loading] = useState(new Array(Object.values(authContext.restaurants)).fill(false));
+  
+
 
   useEffect(()=>{
   }, [])
@@ -179,9 +181,35 @@ const setWeekdayAndTimeArrays = async ()=>{
 
   }
 
+  const getRestaurants = async () =>{ 
+        const userDataTemp = await getUser();
+        const collect = await Firebase.firestore().collection('restaurants').get();
+        var tempList = {}
+        const savedRestaurantsTemp = [];
+        const savedRestaurantsObjectTemp = {};
+        await collect.docs.map((doc, i)=>{
+            tempList[i] = doc.data();   
+
+        })
+        setRestaurants(tempList); 
+        
+
+        
+
+  }
+
+  const renderedRestaurants = async () => {
+
+  }
+
   function RenderContent(){
+    var numCafesNear = 0;
+    var numSearch = 0;
+
     return(
     <View style={{width: "100%", height: Dimensions.get("screen").height, marginTop: 'auto', backgroundColor: 'white', shadowRadius: 10}}>
+
+      <View>
 
         <View style={styles.container}>
           <MaterialCommunityIcons size={20} color={"gray"} style={styles.icon} name="magnify"/>
@@ -201,60 +229,120 @@ const setWeekdayAndTimeArrays = async ()=>{
             style={{borderRadius: 2, paddingHorizontal: 5, paddingVertical: 3, width: '100%'}}
             >
         </TextInput>
-      </View> 
-        <Text style={styles.allCafes}>
-        Cafes Near Me</Text>
 
+         
+        
+        </View> 
+
+        <View>
+          {authContext.search.length === 0 ?  <Text style={styles.allCafes}>
+          Cafes Near Me</Text> : <Text style={styles.allCafes}>
+          Search</Text>} 
+        </View>
+        </View>
       <ScrollView showsVerticalScrollIndicator={false} styles={styles.modalView}>
 
 
-        {restaurantList.map((ele, i)=>{
-          if (String(ele["name"]).toLowerCase().includes(authContext.search.toLowerCase())){
-          return(
-            <View key={i} style={{borderRadius: 10, shadowColor: 'gray', shadowOffset: {width: 3, height: 3}, shadowRadius: 5, shadowOpacity: 0.6,}}>
-            <TouchableOpacity key={i} title="restaurant" underlayColor="#f4f3f3" 
-        onPress={async () => {
-          //const arr = getItems(ele[0]);
-          //console.log(ele)
-        getItems(ele).then((items) => navigation.navigate(String(ele["name"]), {restaurant: ele, itemsArr: items.tempItems, modals: items.modals, times: items.tempTimes}));
-       
+        {Object.values(authContext.restaurants).map((ele, i)=>{
+          if (authContext.search.length === 0){
+            if (ele.city === authContext.userCity && ele.country === authContext.userCountry){
+              numCafesNear += 1;
+              return(
+                    <View key={i} style={{borderRadius: 10, shadowColor: 'gray', shadowOffset: {width: 3, height: 3}, shadowRadius: 5, shadowOpacity: 0.6,}}>
+                    <TouchableOpacity key={i} title="restaurant" underlayColor="#f4f3f3" 
+                onPress={async () => {
+                  //const arr = getItems(ele[0]);
+                  //console.log(ele)
+                getItems(ele).then((items) => navigation.navigate(String(ele["name"]), {restaurant: ele, itemsArr: items.tempItems, modals: items.modals, times: items.tempTimes}));
+              
+                  
+                }}style={styles.restaurantCard}>
+                  {/* FIX THE LOCATION COORDS LINE 136!!!! GETTING COMPONENT EXCEPTION, UNDEFIEND IS NOT AN OBJECT ON FIRST RENDER */}
+                  {/* latitude: Number(authContext.location["coords"]["latitude"]) */}
+                  {/* longitude: Number(authContext.location["coords"]["longitude"])} */}
+                    <View style={{}}>
+                    <View style={{flexDirection: 'row'}}>
+                    <Text style={styles.restaurantTitle}>{ele["name"]}</Text>
+                    {authContext.locationSet ? 
+                    <Text style={styles.distanceStyle}>{(calculatePreciseDistance({latitude: Number(authContext.location.coords.latitude), longitude: Number(authContext.location.coords.longitude)}, {latitude: Number(ele["latitude"]), longitude: Number(ele["longitude"])})/1000*12).toFixed(0)} min walk</Text>
+                    : <Text style={styles.distanceStyle}> </Text>}
+
+                    {authContext.locationSet ? 
+                    <MaterialCommunityIcons size={16} color={"gray"} style={{position: 'absolute', right: '1%', margin: 15, marginBottom: 5}} name="walk" />
+                    : null}
+                    </View>
+                    <Text numberOfLines={1} style={styles.restaurantDescription}>{ele["description"]}</Text>
+                    <View style={styles.imageRow}>
+                    <Image style = {styles.restaurantImage} source={{uri: ele["pictures"][0]}}/>
+
+                    <Image style = {styles.restaurantImage} source={{uri: ele["pictures"][1]}}/>
+                    </View>
+                    </View>
+                    </TouchableOpacity>
+                    </View> )
+            }
+
+          } else{
+            if (ele.name.toUpperCase().includes(authContext.search.toUpperCase())){
+              numSearch += 1;
+                return(
+                  <View key={i} style={{borderRadius: 10, shadowColor: 'gray', shadowOffset: {width: 3, height: 3}, shadowRadius: 5, shadowOpacity: 0.6,}}>
+                  <TouchableOpacity key={i} title="restaurant" underlayColor="#f4f3f3" 
+              onPress={async () => {
+                //const arr = getItems(ele[0]);
+                //console.log(ele)
+              getItems(ele).then((items) => navigation.navigate(String(ele["name"]), {restaurant: ele, itemsArr: items.tempItems, modals: items.modals, times: items.tempTimes}));
+            
+                
+              }}style={styles.restaurantCard}>
+                {/* FIX THE LOCATION COORDS LINE 136!!!! GETTING COMPONENT EXCEPTION, UNDEFIEND IS NOT AN OBJECT ON FIRST RENDER */}
+                {/* latitude: Number(authContext.location["coords"]["latitude"]) */}
+                {/* longitude: Number(authContext.location["coords"]["longitude"])} */}
+                  <View style={{}}>
+                  <View style={{flexDirection: 'row'}}>
+                  <Text style={styles.restaurantTitle}>{ele["name"]}</Text>
+                  {authContext.locationSet ? 
+                  <Text style={styles.distanceStyle}>{(calculatePreciseDistance({latitude: Number(authContext.location.coords.latitude), longitude: Number(authContext.location.coords.longitude)}, {latitude: Number(ele["latitude"]), longitude: Number(ele["longitude"])})/1000*12).toFixed(0)} min walk</Text>
+                  : <Text style={styles.distanceStyle}> </Text>}
+
+                  {authContext.locationSet ? 
+                  <MaterialCommunityIcons size={16} color={"gray"} style={{position: 'absolute', right: '1%', margin: 15, marginBottom: 5}} name="walk" />
+                  : null}
+                  </View>
+                  <Text numberOfLines={1} style={styles.restaurantDescription}>{ele["description"]}</Text>
+                  <View style={styles.imageRow}>
+                  <Image style = {styles.restaurantImage} source={{uri: ele["pictures"][0]}}/>
+
+                  <Image style = {styles.restaurantImage} source={{uri: ele["pictures"][1]}}/>
+                  </View>
+                  </View>
+                  </TouchableOpacity>
+                  </View> )
+              }
+
+             }
+          })}
+
+          {authContext.locationSet === false && authContext.search.length === 0? 
+          <View>
+          <MaterialCommunityIcons name="map-marker" size={120} color='lightgray' style={{alignSelf: 'center', marginTop: 100, opacity: 0.5}}/>
+
+          <Text style={{width: '70%', alignSelf: 'center', opacity: 0.6, textAlign: 'center', marginTop: 25, color: 'gray', fontSize: 15, fontWeight: '500'}}>Turn on location services to see cafes near you.</Text> 
           
-        }}style={styles.restaurantCard}>
-          {/* FIX THE LOCATION COORDS LINE 136!!!! GETTING COMPONENT EXCEPTION, UNDEFIEND IS NOT AN OBJECT ON FIRST RENDER */}
-          {/* latitude: Number(authContext.location["coords"]["latitude"]) */}
-          {/* longitude: Number(authContext.location["coords"]["longitude"])} */}
-            <View style={{}}>
-            <View style={{flexDirection: 'row'}}>
-            <Text style={styles.restaurantTitle}>{ele["name"]}</Text>
-            {authContext.locationSet ? 
-            <Text style={styles.distanceStyle}>{(calculatePreciseDistance({latitude: Number(authContext.location.coords.latitude), longitude: Number(authContext.location.coords.longitude)}, {latitude: Number(ele["latitude"]), longitude: Number(ele["longitude"])})/1000*12).toFixed(0)} min walk</Text>
-            : <Text style={styles.distanceStyle}> </Text>}
-
-            {authContext.locationSet ? 
-            <MaterialCommunityIcons size={16} color={"gray"} style={{position: 'absolute', right: '1%', margin: 15, marginBottom: 5}} name="walk" />
-            : null}
-            </View>
-            <Text numberOfLines={1} style={styles.restaurantDescription}>{ele["description"]}</Text>
-            <View style={styles.imageRow}>
-            <Image style = {styles.restaurantImage} source={{uri: ele["pictures"][0]}}/>
-
-            <Image style = {styles.restaurantImage} source={{uri: ele["pictures"][1]}}/>
-            </View>
-            </View>
-            </TouchableOpacity>
-            </View> )
-        }})}
+          </View>
+          : null}
+          {authContext.locationSet === true && authContext.search.length !== 0 && numSearch === 0 ? <Text style={{width: '70%', alignSelf: 'center', opacity: 0.6, textAlign: 'center', marginTop: 100, color: 'gray', fontSize: 15, fontWeight: '500'}}>We're sorry, there are currently no cafes that match your search.</Text> : null}
+          {authContext.locationSet === true && authContext.search.length === 0 && numCafesNear === 0 ? <View>
+          <Text style={{width: '70%', alignSelf: 'center', textAlign: 'center', marginTop: 80, color: 'gray', opacity: 0.6, fontSize: 15, fontWeight: '500'}}>We're sorry, there are no cafes in your area. We are rapidly expanding our cafe selection so please check back later!</Text> 
+          <Image style = {{width: '50%', resizeMode: 'contain', height: 200, alignSelf: 'center', marginTop: 25, opacity: 0.2}} source={require('../assets/sadCoffeeGray.png')} />
+          </View>: null}
+            
       
        <View style={styles.lastCard}></View>
 
         
       </ScrollView>
-      {authContext.cart.length=== 0 ? null : 
-      <TouchableOpacity style={{position: 'absolute', bottom: '11%', width: '95%', alignSelf: 'center', paddingVertical: 11, paddingHorizontal: 30, backgroundColor: '#119aa3', borderRadius: 20, textAlign: 'center'}} onPress={()=>setWeekdayAndTimeArrays().then(()=>navigation.navigate("Cart"))}>
-          <View ><Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', fontSize: 16}}>
-            <MaterialCommunityIcons name="cart" color='white' size={18} style={{paddingRight: 10}}/>
-              {authContext.cartRestaurant.restaurant.name} - {authContext.cartNumber} item(s)</Text></View>
-      </TouchableOpacity> }
+
     </View>)
 }
   return (
@@ -315,7 +403,8 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 20,
         marginHorizontal: 15,
-        marginBottom: 5
+        marginBottom: 15,
+        marginVertical: 15
         
     },
 
@@ -348,6 +437,8 @@ const styles = StyleSheet.create({
         shadowOffset: {width: 2, height: 2}, 
         shadowRadius: 5, 
         shadowOpacity: 1,
+        height: 165,
+        marginBottom: 10
     },
 
     restaurantList: {
@@ -359,7 +450,9 @@ const styles = StyleSheet.create({
         height: 80,
         width: '46%',
         marginHorizontal: "2%",
-        borderRadius: 8
+        borderRadius: 8,
+        marginTop: 1
+        //resizeMode: 'cover'
     },
 
     restaurantDescription: {

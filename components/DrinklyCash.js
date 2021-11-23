@@ -1,6 +1,6 @@
 import AuthContext from '../context/Context'
 import React, {useContext, useState, useEffect} from 'react';
-import {Button, ScrollView, View, StyleSheet, TextInput, TouchableOpacity, TouchableHighlight, Text, Modal, Image, Dimensions } from 'react-native';
+import {Switch, Button, ScrollView, View, StyleSheet, TextInput, TouchableOpacity, TouchableHighlight, Text, Modal, Image, Dimensions, KeyboardAvoidingView } from 'react-native';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ItemModal from '../pages/ItemModal'
@@ -29,6 +29,21 @@ export default function DrinklyCash({route}){
     const [paymentModal, setPaymentModal] = useState(false);
     const [loading, setLoading] = useState(false);
     const [addingCash, setAddingCash] = useState(false);
+
+    const toggleSwitch = async () => {
+        const tempBool = !authContext.drinklyCash;
+        await authContext.setDrinklyCash(!authContext.drinklyCash)
+        await authContext.setPaymentMethod(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < authContext.cartSubTotal || tempBool === false ? (authContext.defaultPaymentId=== undefined ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash')
+        await authContext.setIcon(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (authContext.cartSubTotal) || tempBool === false ? (authContext.defaultPaymentId === undefined ? '' : 'credit-card') : 'cash')
+        if (tempBool === true){
+            authContext.setServiceFee(0);
+        } else{
+            authContext.setServiceFee(0.15);
+        }
+    
+    
+    
+    }
 
     const addCash = async() =>{
         await setAddingCash(true);
@@ -164,19 +179,37 @@ export default function DrinklyCash({route}){
     return(
         <View style={{backgroundColor: 'white'}}>
             <ScrollView showsVerticalScrollIndicator={false} style={{height: Dimensions.get("screen").height, backgroundColor: 'white', paddingTop: 80}}>
-                <Text style={{alignSelf: 'center', marginBottom: 50, color: '#a7a9a9', fontSize: 40, fontWeight: '400', marginTop: 20, width: '95%', textAlign: 'center', paddingVertical: 20, borderRadius: 15}}>Balance: ${authContext.userData.drinkly_cash === undefined ? 0 : authContext.userData.drinkly_cash}</Text>
+
+                <View style={{flexDirection: 'row', width: '90%', alignSelf: 'center', marginVertical: 10, opacity: authContext.drinklyCash ? 1 : 0.5}}>
+                        <Text style={{fontWeight: 'bold', fontSize: 12, marginTop: 15}}>Use Drinkly Cash to pay</Text>
+
+
+                        <Text style={{alignSelf: 'center', marginTop: 15, color: 'gray', position: 'absolute', right: 0}}>{authContext.drinklyCash ? "On" : "Off"}</Text>
+                        <Switch
+                            trackColor={{ false: "#767577", true: "#8fd7dc" }}
+                            style={{position: 'absolute', right: 25}}
+                            thumbColor={authContext.drinklyCash ? "#44bec6" : "#f4f3f4"}
+                            onValueChange={()=>toggleSwitch()}
+                            value={authContext.drinklyCash}
+                        />
+                        
+                    </View>
+
+                <View style={{width: '90%', marginBottom: 20, borderRadius: 15, height: 150, backgroundColor: 'white', shadowColor: 'black', marginTop: 20, opacity: authContext.drinklyCash ? 1 : 0.5, shadowOffset: {width: 3, height: 3}, shadowRadius: 10, shadowOpacity: 0.3, alignSelf: 'center'}}>
+                <Text style={{alignSelf: 'center', marginBottom: 50, color: '#a7a9a9', fontSize: 40, fontWeight: '400', marginTop: 30, width: '90%', textAlign: 'center', paddingVertical: 20, borderRadius: 15, }}>${authContext.userData.drinkly_cash === undefined ? 0 : authContext.userData.drinkly_cash}</Text>
+                </View>
 
                 {amounts.map((amount, i)=>{
                     return (
-                    <View  key={i} style={{width: '80%', borderBottomWidth: 1, alignSelf: 'center', borderBottomColor: 'lightgray'}}>
+                    <View  key={i} style={{width: '80%',  alignSelf: 'center', backgroundColor: '#eff3f3', marginVertical: 5, borderRadius: 10}}>
                     <TouchableOpacity style={{padding: 15, flexDirection: 'row'}} onPress={()=>{setAmountIndex(i)}}>
                         <Text style={{color: '#747575'}}>Add ${amount}</Text>
-                        {amountIndex === i ? <MaterialCommunityIcons name="check" color='green' size={25} style={{position: 'absolute', right: 0, marginTop: 13}}/> : null}
+                        {amountIndex === i ? <MaterialCommunityIcons name="check" color='green' size={25} style={{position: 'absolute', right: 10, marginTop: 13}}/> : null}
                     </TouchableOpacity>
                     </View>)
                 })}
 
-                <View  style={{width: '80%', borderBottomWidth: 1, alignSelf: 'center', borderBottomColor: 'lightgray'}}>
+                <View  style={{width: '80%', alignSelf: 'center', borderBottomColor: 'lightgray', borderRadius: 10, backgroundColor: '#eff3f3'}}>
                     <TouchableOpacity style={{padding: 10, flexDirection: 'row'}} onPress={()=>setAmountIndex(-1)}>
                         <InputField
                             inputStyle={{
@@ -187,7 +220,9 @@ export default function DrinklyCash({route}){
                             float: 'left',
                             width: '70%',
                             borderRadius: 5,
-                            backgroundColor: '#ebf0f0',
+                            borderColor: 'lightgray',
+                            
+                            
 
                             }}
                             placeholder='Enter amount'
@@ -198,13 +233,20 @@ export default function DrinklyCash({route}){
                             setAmount(text);
                             setAmountIndex(-1)}}
                         />
-                        {amountIndex === -1 ? <MaterialCommunityIcons name="check" color='green' size={25} style={{position: 'absolute', right: 0, marginTop: 13}}/> : null}
+                        {amountIndex === -1 ? <MaterialCommunityIcons name="check" color='green' size={25} style={{position: 'absolute', right: 10, marginTop: 13}}/> : null}
                     </TouchableOpacity>
                 </View>
 
                 <Text style={{alignSelf: 'center', color: 'red', marginTop: 20}}>{errorMessage}</Text>
 
-                <TouchableOpacity style={{marginTop: 200, width: '80%', alignSelf: 'center', paddingVertical: 11, paddingHorizontal: 30, backgroundColor: '#119aa3', borderRadius: 20, textAlign: 'center'}} 
+                
+                
+            </ScrollView>
+
+            <TouchableOpacity style={{marginTop: 200, width: '95%', alignSelf: 'center', position: 'absolute', bottom: '10%', paddingVertical: 11, paddingHorizontal: 30, backgroundColor: '#119aa3', borderRadius: 20, textAlign: 'center', shadowColor: 'black', 
+          shadowOffset: {width: 2, height: 2}, 
+          shadowRadius: 3, 
+          shadowOpacity: 0.6}} 
                         onPress={()=>{
                             addCash();
                             // if (authContext.userData["default_card"]===undefined){
@@ -214,12 +256,10 @@ export default function DrinklyCash({route}){
                         }}>
                     <Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', fontSize: 16}}>Add {amountIndex !== -1 ? `$${amounts[amountIndex]}` : (amount==='' || isNaN(amount) || amount === undefined ? '' : `$${amount}`)} Drinkly Cash</Text>
             </TouchableOpacity> 
-                
-            </ScrollView>
 
             
             <Modal visible={paymentModal} transparent={true} animationType='slide'>
-                <View style={{padding: 20, width: '100%', backgroundColor: 'white', position: 'absolute', bottom: '0%', height: 250, alignSelf: 'center', borderRadius: 15, shadowColor: 'gray', shadowOffset: {width: 2, height: -2}, shadowRadius: 2, shadowOpacity: 0.4}}>
+                <KeyboardAvoidingView style={{padding: 20, width: '100%', backgroundColor: 'white', position: 'absolute', bottom: '0%', height: '50%', alignSelf: 'center', borderRadius: 15, shadowColor: 'gray', shadowOffset: {width: 2, height: -2}, shadowRadius: 2, shadowOpacity: 0.4}}>
                 
                 <View><Text style={{alignSelf: 'center', fontSize: 15, fontWeight: '500', marginBottom: 20}}>Please add a default payment method.</Text>
 
@@ -290,7 +330,7 @@ export default function DrinklyCash({route}){
                 <MaterialCommunityIcons name="close" size={22}/>
             </TouchableOpacity> 
 
-                </View>
+                </KeyboardAvoidingView>
 
 
             

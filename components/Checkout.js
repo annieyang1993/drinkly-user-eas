@@ -427,8 +427,11 @@ export default function Checkout(){
 
 
             </ScrollView>
-            <View style={{backgroundColor: 'white', bottom: '12%', position: 'absolute', width: '100%', height: 80}}>
-            <TouchableOpacity style={{position: 'absolute', top: '0%', width: '95%', alignSelf: 'center', paddingVertical: 11, paddingHorizontal: 30, backgroundColor: '#119aa3', borderRadius: 20, textAlign: 'center'}} 
+            <View style={{backgroundColor: 'white', bottom: '17%', position: 'absolute', width: '100%', height: 80}}>
+            <TouchableOpacity style={{position: 'absolute', top: '0%', width: '95%', alignSelf: 'center', paddingVertical: 11, shadowColor: 'black', 
+                    shadowOffset: {width: 2, height: 2}, 
+                    shadowRadius: 3, 
+                    shadowOpacity: 0.8, paddingHorizontal: 30, backgroundColor: '#119aa3', borderRadius: 20, textAlign: 'center'}} 
             onPress={()=>{
                 submitOrder();
                 // if (authContext.userData["default_card"]===undefined){

@@ -172,12 +172,6 @@ export default function PointsNavigation({navigation}){
             </ScrollView>
 
             </View>
-                  {authContext.cart.length=== 0 ? null : 
-      <TouchableOpacity style={{position: 'absolute', bottom: 13, width: '95%', alignSelf: 'center', zIndex: 500, paddingVertical: 11, paddingHorizontal: 30, backgroundColor: '#119aa3', borderRadius: 20, textAlign: 'center'}} onPress={()=>setWeekdayAndTimeArrays().then(()=>navigation.navigate("Cart"))}>
-          <View ><Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', fontSize: 16}}>
-            <MaterialCommunityIcons name="cart" color='white' size={18} style={{paddingRight: 10}}/>
-              {authContext.cartRestaurant.restaurant.name} - {authContext.cartNumber} item(s)</Text></View>
-      </TouchableOpacity> }
 
         </View>    )
 

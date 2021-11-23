@@ -60,30 +60,27 @@ export default function LoginScreen({ navigation }) {
         <MaterialCommunityIcons name="arrow-left" size={25} color={'#676868'}/>
       </TouchableOpacity>
 
-     <Image style = {styles.logo} source={require("../assets/logo-blue.png")}/>
-
-      <Text style={styles.title}></Text>
-    
+     <Image style = {styles.logo} source={require("../assets/Logo.png")}/>
+    <Text style={{fontWeight: 'bold', color: 'gray', marginTop: 10}}>Email</Text>
       <InputField
         inputStyle={{
           fontSize: 14
         }}
         containerStyle={{
           backgroundColor: "#e2e4e4",
-            borderRadius: 25,
+            borderRadius: 5,
             flexDirection: "row",
             width: '100%',
             padding: 10,
             marginVertical: 0,
             alignSelf: 'center',
+            marginTop: 0,
 
         }}
-        leftIcon='email'
         placeholder='Enter email'
         autoCapitalize='none'
         keyboardType='email-address'
         textContentType='emailAddress'
-        autoFocus={true}
         value={email}
         onChangeText={text => {setEmail(text) 
         }}
@@ -91,13 +88,14 @@ export default function LoginScreen({ navigation }) {
       />
 
         <ErrorMessage error={' '} visible={true}/>
+        <Text style={{fontWeight: 'bold', color: 'gray'}}>Enter password</Text>
       <InputField
         inputStyle={{
           fontSize: 14
         }}
         containerStyle={{
           backgroundColor: "#e2e4e4",
-            borderRadius: 25,
+            borderRadius: 5,
             flexDirection: "row",
             width: '100%',
             padding: 10,
@@ -105,13 +103,11 @@ export default function LoginScreen({ navigation }) {
             alignSelf: 'center',
             
         }}
-        leftIcon='lock'
         placeholder='Enter password'
         autoCapitalize='none'
         autoCorrect={false}
-        secureTextEntry={passwordVisibility}
+        secureTextEntry={true}
         textContentType='password'
-        rightIcon={rightIcon}
         value={password}
         onChangeText={text => {setPassword(text)
          }}
@@ -125,9 +121,13 @@ export default function LoginScreen({ navigation }) {
         tileColor='#fff'
         titleSize={15}
         containerStyle={{
-          marginBottom: 24,
-          marginTop: 12,
-          borderRadius: 25
+          marginBottom: 20,
+          marginTop: 30,
+          borderRadius: 25,
+          shadowColor: 'black', 
+          shadowOffset: {width: 2, height: 2}, 
+          shadowRadius: 3, 
+          shadowOpacity: 0.6
         }}
       /> 
     <View style={{alignSelf: 'center'}}>
@@ -169,7 +169,8 @@ const styles = StyleSheet.create({
     width: "40%",
     height: "8%",
     resizeMode: 'contain',
-    alignSelf: 'center'
+    alignSelf: 'center',
+    marginTop: -10
     
   }
 });

@@ -233,7 +233,7 @@ export default function HomeNavigation({navigation}){
                 <View>
                 
                 <Image style = {{width: '70%', resizeMode: 'contain', alignSelf: 'center', marginTop: 0, maxHeight: 300, opacity: 0.2, marginTop: 50}} source={require("../assets/home-page-icon.png")}/>
-                <Text style={{marginHorizontal: 20, color: 'gray', fontSize: 15, alignSelf: 'center', opacity: 0.7}}>Save restaurants to see here.</Text> 
+                <Text style={{marginHorizontal: 20, color: 'gray', fontSize: 15, alignSelf: 'center', opacity: 0.7}}>Save cafes to see here.</Text> 
                 </View>: 
                 <View>
                     {authContext.savedRestaurants.map((name, j)=>{
@@ -275,12 +275,7 @@ export default function HomeNavigation({navigation}){
 
             </ScrollView>
             </View>
-             {authContext.cart.length=== 0 ? null : 
-                <TouchableOpacity style={{position: 'absolute', bottom: 92, width: '95%', alignSelf: 'center', zIndex: 500, paddingVertical: 11, paddingHorizontal: 30, backgroundColor: '#119aa3', borderRadius: 20, textAlign: 'center'}} onPress={()=>setWeekdayAndTimeArrays().then(()=>navigation.navigate("Cart"))}>
-                    <View ><Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', fontSize: 16}}>
-                        <MaterialCommunityIcons name="cart" color='white' size={18} style={{paddingRight: 10}}/>
-                        {authContext.cartRestaurant.restaurant.name} - {authContext.cartNumber} item(s)</Text></View>
-                </TouchableOpacity> }
+             
 
         <Modal visible={itemModal} backgroundColor='white' animationType='slide' style={{zIndex: 500}}>
             <View style={{height: '95%', width: '100%', backgroundColor: 'white', position: 'absolute', bottom: '0%'}}>

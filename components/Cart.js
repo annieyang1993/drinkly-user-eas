@@ -407,16 +407,20 @@ export default function Cart({route}){
             zIndex: 50,
             }}
             onPress={() => {
-                navigation.pop(1)
+                navigation.pop(1);
+                authContext.setCartBool(false);
                 //navigation.navigate(authContext.prevScreen, authContext.prevScreenParams)
             }}>
             <MaterialCommunityIcons name="close" size={22}/>
         </TouchableOpacity> 
 
         
-        <View style={{backgroundColor: 'white', bottom: '0%', position: 'absolute', width: '100%', height: 100}}>
+        <View style={{bottom: '6%', position: 'absolute', width: '100%', height: 100}}>
           <Text style={{alignSelf: 'center', textAlign: 'center', color: 'red', marginBottom: 10}}>{errorMessage}</Text>
-        <TouchableOpacity style={{position: 'absolute', top: '0%', marginTop: 20, width: '95%', alignSelf: 'center', paddingVertical: 11, paddingHorizontal: 30, backgroundColor: '#119aa3', borderRadius: 20, textAlign: 'center'}} 
+        <TouchableOpacity style={{position: 'absolute', top: '0%', marginTop: 20, width: '95%', alignSelf: 'center', shadowColor: 'black', 
+                    shadowOffset: {width: 2, height: 2}, 
+                    shadowRadius: 3, 
+                    shadowOpacity: 0.8, paddingVertical: 11, paddingHorizontal: 30, backgroundColor: '#119aa3', borderRadius: 20, textAlign: 'center'}} 
         onPress={()=>checkContinue()}>
                 <Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', fontSize: 16}}>Continue (${authContext.rounded(authContext.cartSubTotal + authContext.taxes + authContext.serviceFee + authContext.tip).toFixed(2)})</Text>
         </TouchableOpacity> 
