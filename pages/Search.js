@@ -1,7 +1,7 @@
 
 
 import React, { useEffect, useContext, useState } from 'react';
-import {Image, TouchableOpacity, ScrollView, SlideModal, Button, Modal, TextInput, View, Text, StyleSheet, Dimensions } from 'react-native'
+import {Linking, Image, TouchableOpacity, ScrollView, SlideModal, Button, Modal, TextInput, View, Text, StyleSheet, Dimensions } from 'react-native'
 import {MaterialCommunityIcons} from '@expo/vector-icons';
 //import BottomSheet from 'reanimated-bottom-sheet'
 import {getDistance, getPreciseDistance} from 'geolib';
@@ -327,8 +327,16 @@ const setWeekdayAndTimeArrays = async ()=>{
           <View>
           <MaterialCommunityIcons name="map-marker" size={120} color='lightgray' style={{alignSelf: 'center', marginTop: 100, opacity: 0.5}}/>
 
-          <Text style={{width: '70%', alignSelf: 'center', opacity: 0.6, textAlign: 'center', marginTop: 25, color: 'gray', fontSize: 15, fontWeight: '500'}}>Turn on location services to see cafes near you.</Text> 
-          
+          <Text style={{width: '70%', alignSelf: 'center', opacity: 0.6, textAlign: 'center', marginTop: 25, color: 'gray', fontSize: 15, fontWeight: '500'}}>This app requires location settings to search for nearby cafes. Please turn on location services to see cafes near you.</Text> 
+            <TouchableOpacity style={{marginTop: 20, alignSelf: 'center', padding: 10, paddingHorizontal: 20, backgroundColor: '#44bec6', borderRadius: 10, shadowColor: 'black', 
+              shadowOffset: {width: 1, height: 1}, 
+              shadowRadius: 2, 
+              shadowOpacity: 0.6}} onPress={()=>Linking.openURL('app-settings:')}>
+              <Text style={{color: 'white', fontWeight: '500'}}>
+                  Settings
+              </Text>
+          </TouchableOpacity>
+
           </View>
           : null}
           {authContext.locationSet === true && authContext.search.length !== 0 && numSearch === 0 ? <Text style={{width: '70%', alignSelf: 'center', opacity: 0.6, textAlign: 'center', marginTop: 100, color: 'gray', fontSize: 15, fontWeight: '500'}}>We're sorry, there are currently no cafes that match your search.</Text> : null}

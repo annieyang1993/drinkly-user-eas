@@ -1,6 +1,6 @@
 import React, { useContext, useState, useMemo, useEffect} from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Switch, Modal, ScrollView, TouchableOpacity, StyleSheet, Text, View, Dimensions} from 'react-native';
+import { Linking, Switch, Modal, ScrollView, TouchableOpacity, StyleSheet, Text, View, Dimensions} from 'react-native';
 import {Firebase, db} from '../config/firebase';
 import AuthContext from '../context/Context';
 import InputField from '../components/InputField'
@@ -14,7 +14,7 @@ export default function PersonalInformation({navigation}){
              authContext.setLocationSet(!authContext.locationSet)
              authContext.setLocation();
              authContext.setUserCity();
-            authContext.setUserCountry();
+             authContext.setUserCountry();
              //authContext.setRestaurants({});
          } else{
              //authContext.setLocationSet(true);
@@ -45,19 +45,19 @@ export default function PersonalInformation({navigation}){
             
             <ScrollView showsVerticalScrollIndicator={false} style={{height: '100%', width: '100%'}}>
 
-                <View style={{flexDirection: 'row', width: '90%', alignSelf: 'center', marginTop: 50}}>
+                <View style={{width: '90%', alignSelf: 'center', marginTop: 50}}>
 
                 <Text style={{fontWeight: 'bold', fontSize: 18}}>Location permissions</Text>
-                <View style={{position: 'absolute', right: 0}}>
-                <Switch
-                    trackColor={{ false: "#767577", true: "#8fd7dc" }}
-                    thumbColor={authContext.locationSet ? "#44bec6" : "#f4f3f4"}
-                    onValueChange={()=>toggleSwitch()}
-                    value={authContext.locationSet}
-                />
-                <Text style={{alignSelf: 'center', marginTop: 5, color: 'gray'}}>{authContext.locationSet ? "On" : "Off"}</Text>
+                <Text style={{color: 'gray', fontSize: 14, fontWeight: '500'}}>This app requires location settings to search for nearby cafes. Please go to your app settings to turn on location services.</Text>
+                <TouchableOpacity style={{marginTop: 50, alignSelf: 'center', padding: 10, paddingHorizontal: 20, backgroundColor: '#44bec6', borderRadius: 10, shadowColor: 'black', 
+                    shadowOffset: {width: 1, height: 1}, 
+                    shadowRadius: 2, 
+                    shadowOpacity: 0.6}} onPress={()=>Linking.openURL('app-settings:')}>
+                    <Text style={{color: 'white', fontWeight: '500'}}>
+                        Settings
+                    </Text>
+                </TouchableOpacity>
 
-                </View>
 
                 </View>
 

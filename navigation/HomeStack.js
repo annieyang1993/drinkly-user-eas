@@ -2,7 +2,7 @@ import React, { useContext, useState, useMemo, useEffect} from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import { NavigationContainer, useNavigation, useRoute } from '@react-navigation/native';
-import {SafeAreaView, Modal, StyleSheet, Text, View, Button as RNButton, TouchableOpacity, Dimensions } from 'react-native';
+import {AppState, SafeAreaView, Modal, StyleSheet, Text, View, Button as RNButton, TouchableOpacity, Dimensions, AppStateStatus } from 'react-native';
 import 'firebase/firestore'
 import AuthContext from '../context/Context'
 import Geocoder from 'react-native-geocoding';
@@ -149,8 +149,10 @@ export default function HomeStack(){
     const navigation = useNavigation();
     const Stack = createStackNavigator();
 
+    const [appState, setAppState] = useState(AppState.currentState);
 
-    const getRestaurants = async (city, country) =>{ 
+
+    const getRestaurants = async () =>{ 
         const userDataTemp = await getUser();
         const collect = await Firebase.firestore().collection('restaurants').get();
         var tempList = {}
@@ -199,14 +201,35 @@ export default function HomeStack(){
         let { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
             setLocationSet(false);
-            setErrorMsg('Permission to access location was denied');
+            setLocation();
+            setUserCity();
+            setUserCountry();
             return;
         } else{
             let location = await Location.getCurrentPositionAsync({accuracy: Location.Accuracy.Highest});
             setLocation(location);
             setLocationSet(true);
             const loc = await Location.reverseGeocodeAsync(location["coords"]).then((loc)=>{
-                getRestaurants(loc[0]["city"], loc[0]["country"]);
+                setUserCity(loc[0]["city"]);
+                setUserCountry(loc[0]["country"]);
+            });
+            
+        }
+    }
+
+    const getLocationSecond = async () => {
+        let { status } = await Location.getForegroundPermissionsAsync();
+        if (status !== 'granted') {
+            setLocationSet(false);
+            setLocation();
+            setUserCity();
+            setUserCountry();
+            return;
+        } else{
+            let location = await Location.getCurrentPositionAsync({accuracy: Location.Accuracy.Highest});
+            setLocation(location);
+            setLocationSet(true);
+            const loc = await Location.reverseGeocodeAsync(location["coords"]).then((loc)=>{
                 setUserCity(loc[0]["city"]);
                 setUserCountry(loc[0]["country"]);
             });
@@ -269,6 +292,7 @@ export default function HomeStack(){
     useEffect(async ()=>{
         Geocoder.init("AIzaSyB9fx4NpEW1D65AvgJjzY-npVoFUf17FRg");
         getLocation();
+        getRestaurants();
         getOrders();
         getPoints();
         getPayments();
@@ -670,6 +694,27 @@ export default function HomeStack(){
         // })
 
     }, [])
+
+    useEffect(async ()=>{
+        const handleAppStateChange = async (nextAppState: AppStateStatus) => {
+            setAppState(nextAppState);
+        };
+
+        // register the handler to listen for app state changes
+        AppState.addEventListener('change', handleAppStateChange);
+
+        // unsubscribe
+        return () => AppState.removeEventListener('change', handleAppStateChange);
+    }, [])
+
+    useEffect(async ()=>{
+        // checks that app state changed to 'active' - user comes back from background or inactive state
+        // note -- this will also trigger the first time you enter the screen
+        if (appState === 'active') {
+            // check location permission
+            getLocationSecond();
+        }
+    }, [appState])
 
     const config = {
         animation: 'spring',
