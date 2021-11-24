@@ -319,18 +319,19 @@ export default function Checkout(){
                         current_points: 0,
                         max_points: Number(authContext.cartRestaurant.restaurant["max_points"]),
                         rewards: authContext.pointsList[`${authContext.cartRestaurant.info}`]["rewards"]+1,
+                        cummulative_rewards: authContext.pointsList[`${authContext.cartRestaurant.info}`]["cummulative_rewards"]+1,
                         cummulative_points: authContext.pointsList[`${authContext.cartRestaurant.info}`]["cummulative_points"]+Number(authContext.cartRestaurant.restaurant.points_per_purchase),
                         restaurant_name: authContext.cartRestaurant.restaurant.name,
                         restaurant_card_pic: authContext.cartRestaurant.restaurant.rewards_card_pic,
                     })
 
                     //WRITING REWARDS!!!
-                    const code = authContext.cartRestaurant.restaurant.name.slice(0,3)+"REWARD"
+                    const code = authContext.cartRestaurant.restaurant.name.slice(0,3).toUpperCase()+"REWARD"
                     const date = new Date().toLocaleDateString()+' '+new Date().toLocaleTimeString()
                     await Firebase.firestore().collection('users')
                     .doc(`${authContext.user.uid}`)
                     .collection('rewards')
-                    .doc(`${code}-${date}-${authContext.user.uid}-${authContext.cartRestaurant.restaurant.restaurant_id}`)
+                    .doc(`${code}-${authContext.user.uid}-${authContext.userData.rewards_collected}`)
                     .set({
                         user_id: authContext.user.uid,
                         restaurant_id: authContext.cartRestaurant.restaurant.restaurant_id,
@@ -338,24 +339,24 @@ export default function Checkout(){
                         restaurant_name: authContext.cartRestaurant.restaurant.name,
                         used: false,
                         code: code,
-                        id: `${code}-${date}-${authContext.user.uid}-${authContext.cartRestaurant.restaurant.restaurant_id}`,
+                        id: `${code}-${authContext.user.uid}-${authContext.userData.rewards_collected}`,
                         max_reward_cost: authContext.cartRestaurant.restaurant.max_reward_cost,
                         reward_type: authContext.cartRestaurant.restaurant.reward_type
                     })
 
                     const rewardsTemp = authContext.rewards;
                     const rewardsArrayTemp = authContext.rewardsArray.map((x)=>x);
-                    rewardsTemp[`${code}-${date}-${authContext.user.uid}-${authContext.cartRestaurant.restaurant.restaurant_id}`] = {user_id: authContext.user.uid,
+                    rewardsTemp[`${code}-${authContext.user.uid}-${authContext.userData.rewards_collected}`] = 
+                        {user_id: authContext.user.uid,
                         restaurant_id: authContext.cartRestaurant.restaurant.restaurant_id,
                         created_at: new Date(),
                         restaurant_name: authContext.cartRestaurant.restaurant.name,
                         used: false,
                         code: code,
-                        id: `${code}-${date}-${authContext.user.uid}-${authContext.cartRestaurant.restaurant.restaurant_id}`,
+                        id: `${code}-${authContext.user.uid}-${authContext.userData.rewards_collected}`,
                         max_reward_cost: authContext.cartRestaurant.restaurant.max_reward_cost,
                         reward_type: authContext.cartRestaurant.restaurant.reward_type}
-                    rewardsArrayTemp.push(`${code}-${date}-${authContext.user.uid}-${authContext.cartRestaurant.restaurant.restaurant_id}`);
-
+                    rewardsArrayTemp.push(`${code}-${authContext.user.uid}-${authContext.userData.rewards_collected}`);
                     authContext.setRewards(rewardsTemp);
                     authContext.setRewardsArray(rewardsArrayTemp);
                 } else{
@@ -371,6 +372,7 @@ export default function Checkout(){
                         current_points: authContext.pointsList[`${authContext.cartRestaurant.info}`]["current_points"]+Number(authContext.cartRestaurant.restaurant.points_per_purchase),
                         max_points: Number(authContext.cartRestaurant.restaurant["max_points"]),
                         rewards: authContext.pointsList[`${authContext.cartRestaurant.info}`]["rewards"],
+                        cummulative_rewards: authContext.pointsList[`${authContext.cartRestaurant.info}`]["cummulative_rewards"],
                         cummulative_points: authContext.pointsList[`${authContext.cartRestaurant.info}`]["cummulative_points"]+Number(authContext.cartRestaurant.restaurant.points_per_purchase),
                         restaurant_name: authContext.cartRestaurant.restaurant.name,
                         restaurant_card_pic: authContext.cartRestaurant.restaurant.rewards_card_pic,
@@ -390,6 +392,7 @@ export default function Checkout(){
                         current_points: Number(authContext.cartRestaurant.restaurant.points_per_purchase),
                         max_points: Number(authContext.cartRestaurant.restaurant.max_points), ///NEED TO UPDATE THIS TO RESTAURANT'S MAX POINTS
                         rewards: 0,
+                        cummulative_rewards: 0,
                         cummulative_points: Number(authContext.cartRestaurant.restaurant.points_per_purchase),
                         restaurant_name: authContext.cartRestaurant.restaurant.name,
                         restaurant_card_pic: authContext.cartRestaurant.restaurant.rewards_card_pic,

@@ -539,7 +539,7 @@ export default function ItemModal({item, selections}){
           
           onPress={()=>{
             authContext.updateCart([]);
-            authContext.updateCartRestaurant();
+            authContext.updateCartRestaurant({});
             handleAddCartNew();
             setModalVisibles();
             setDiffRestaurantCartPrompt(false);

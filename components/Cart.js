@@ -30,10 +30,8 @@ export default function Cart({route}){
     const tipsArray = ['No tip', '5%', '10%', '15%', '18%'];
     const [tipIndex, setTipIndex] = useState(1)
     const [tips, setTips] = useState(0)
-
-    const roundTwo=(number)=>{
-        const split = String(number).split('.')
-    }
+    const [code, setCode] = useState('')
+    const [discountErrorMessage, setDiscountErrorMessage] = useState('');
 
     const getSelections=async (item, j)=>{
         await setSelections({});
@@ -83,7 +81,6 @@ export default function Cart({route}){
         } else{
         await authContext.setServiceFee(0.15);
         }
-
     }
 
     const checkContinue = async () =>{
@@ -95,6 +92,82 @@ export default function Cart({route}){
       }
     }
 
+    const handleSubmitDiscount = async (text) =>{
+        var found = false;
+        var index = 0;
+
+        authContext.rewardsArray.map((reward, i)=>{
+            if (authContext.rewards[reward]["code"]===text && authContext.rewards[reward]["restaurant_id"]===authContext.cartRestaurant.info){
+                found = true;
+                index = i;
+            }
+        })
+
+        if (text===''){
+            setDiscountErrorMessage('');
+            authContext.setDiscount(0);
+            authContext.setDiscountCode('')
+            authContext.setDiscountBool(false);
+        }
+
+        else if (found === true){
+            authContext.setDiscountBool(true);
+            var discountTotal = 0;
+            if (authContext.rewards[authContext.rewardsArray[index]]["reward_type"]==="Drink"){
+                const {cartIndex, itemprice} = await findLowestPriceIndex();
+                console.log("PRICE HERE", itemprice);
+                console.log(Number(itemprice)<Number(authContext.rewards[authContext.rewardsArray[index]]["max_reward_cost"]))
+                if (Number(itemprice)<Number(authContext.rewards[authContext.rewardsArray[index]]["max_reward_cost"])){
+                    authContext.setDiscount(itemprice);
+                    discountTotal = itemprice;
+                } else{
+                     authContext.setDiscount(Number(authContext.rewards[authContext.rewardsArray[index]]["max_reward_cost"]));
+                     discountTotal = Number(authContext.rewards[authContext.rewardsArray[index]]["max_reward_cost"]);
+                }
+            }
+
+            if ((authContext.cartSubTotal-discountTotal)<4){
+                authContext.setTaxes((authContext.cartSubTotal-discountTotal)*0.05);
+            } else{
+                authContext.setTaxes((authContext.cartSubTotal-discountTotal)*0.13);
+            }
+
+            setTip(Number(authContext.cartSubTotal)-Number(discountTotal), authContext.tipIndex);
+            if (authContext.rounded(Number(authContext.cartSubTotal-Number(discountTotal))) === 0){
+                authContext.setServiceFee(0);
+            }
+
+            
+            setDiscountErrorMessage('');
+            authContext.setDiscountCode(text);
+
+        } else{
+            authContext.setDiscountBool(false);
+            setDiscountErrorMessage('Code does not exist for this cafe.')
+            authContext.setDiscount(0);
+            authContext.setDiscountCode('')
+        }
+        
+    }
+
+    const findLowestPriceIndex = async () => {
+        var index = 0;
+        var itemprice = 0;
+        authContext.cart.map((item, i)=>{
+            
+            if (i===0){
+                itemprice = authContext.rounded(Number(item["total_price"])).toFixed(2);
+            } else{
+                if (authContext.rounded(Number(item["total_price"])).toFixed(2)<Number(itemprice)){
+                    index = i;
+                    itemprice = authContext.rounded(Number(item["total_price"])).toFixed(2);
+                }
+            }
+
+        })
+        return {index, itemprice}
+    }
+
     useEffect(()=>{
       setCartModal(true)
       if (authContext.cartSubTotal <= 4){
@@ -102,11 +175,13 @@ export default function Cart({route}){
       } else{
         setCartTotal(authContext.rounded(authContext.cartSubTotal*1.13+0.15).toFixed(2));
       }
-      setTip(authContext.cartSubTotal, authContext.tipIndex);
+      setTip(authContext.cartSubTotal-authContext.discount, authContext.tipIndex);
     }, [])
 
     return(
+        
         <View style={{backgroundColor: 'white'}}>
+            {console.log(authContext.cart)}
             {authContext.cart.length === 0 ? 
             <ScrollView showsVerticalScrollIndicator={false} style={{height: Dimensions.get("screen").height, backgroundColor: 'white'}}>
             <Text style={{marginTop: 70, alignSelf: 'center', fontWeight: 'bold', fontSize: 16}}>Your cart from</Text>
@@ -218,21 +293,46 @@ export default function Cart({route}){
             var cartTemp = authContext.cart.map((x)=>x);
             cartTemp.splice(i, 1)
             authContext.setCartNumber(authContext.cartNumber-authContext.cart[i]["quantity"])
+            await authContext.handleSubmitDiscount(authContext.discountCode).then(async (discount)=>{
             await authContext.setCartSubTotal(authContext.cartSubTotal-authContext.cart[i]["quantity"]*authContext.cart[i]["total_price"])
             var taxesTemp = 0;
-            if ((authContext.cartSubTotal-authContext.cart[i]["quantity"]*authContext.cart[i]["total_price"])<4){
-            authContext.setTaxes((authContext.cartSubTotal-authContext.cart[i]["quantity"]*authContext.cart[i]["total_price"])*0.05);
-            taxesTemp = (authContext.cartSubTotal-authContext.cart[i]["quantity"]*authContext.cart[i]["total_price"])*0.05;
+            if ((Number(authContext.cartSubTotal)-Number(authContext.cart[i]["quantity"])*Number(authContext.cart[i]["total_price"]) - Number(discount))<4){
+            await authContext.setTaxes((Number(authContext.cartSubTotal)-Number(authContext.cart[i]["quantity"])*Number(authContext.cart[i]["total_price"]) - Number(discount))*0.05);
+            taxesTemp = (Number(authContext.cartSubTotal)-Number(authContext.cart[i]["quantity"])*Number(authContext.cart[i]["total_price"]) - Number(discount))*0.05;
             } else{
-            authContext.setTaxes((authContext.cartSubTotal-authContext.cart[i]["quantity"]*authContext.cart[i]["total_price"])*0.13);
-            taxesTemp = (authContext.cartSubTotal-authContext.cart[i]["quantity"]*authContext.cart[i]["total_price"])*0.13;
+            await authContext.setTaxes((Number(authContext.cartSubTotal)-Number(authContext.cart[i]["quantity"])*Number(authContext.cart[i]["total_price"]) - Number(discount))*0.13);
+            taxesTemp = (Number(authContext.cartSubTotal)-Number(authContext.cart[i]["quantity"])*Number(authContext.cart[i]["total_price"]) - Number(discount))*0.13;
             }
 
-            await setTip(authContext.cartSubTotal-authContext.cart[i]["quantity"]*authContext.cart[i]["total_price"], authContext.tipIndex).then(async (tip) => {
-                await setPaymentMethod(authContext.cartSubTotal-authContext.cart[i]["quantity"]*authContext.cart[i]["total_price"], tip, taxesTemp);
+            await setTip(authContext.cartSubTotal-discount-authContext.cart[i]["quantity"]*authContext.cart[i]["total_price"], authContext.tipIndex).then(async (tip) => {
+                await setPaymentMethod(authContext.cartSubTotal-discount - authContext.cart[i]["quantity"]*authContext.cart[i]["total_price"], tip, taxesTemp);
             });
               
+            });
             authContext.updateCart(cartTemp);
+            if (Object.values(cartTemp).length === 0 ){
+                authContext.setDiscount(0);
+                authContext.setDiscountCode('');
+                authContext.setDiscountBool(false);
+
+                authContext.updateCart([]);
+                authContext.updateCartRestaurant({});
+                authContext.setItemTotals([]);
+                authContext.setWeekDayArray(['Today']);
+                authContext.setDateTimeArray({});
+                authContext.setCartRestaurantHours({});
+                authContext.setBeforeOpen(false);
+                authContext.setAfterClose(false);
+                authContext.setCartSubTotal(0);
+                authContext.setTaxes(0);
+                authContext.setServiceFee(0);
+                authContext.setDayIndex(0);
+                authContext.setTimeIndex(0);
+                authContext.setTip(0);
+                authContext.setDiscountCode('');
+                authContext.setTipIndex(1);
+
+            }
 
             }}><Text><MaterialCommunityIcons name="trash-can-outline" size={20} style={{opacity: 0.5}}/></Text></TouchableOpacity></View>
             <View style={{width: '60%'}}></View>
@@ -262,6 +362,86 @@ export default function Cart({route}){
             </View>
 
             <View style={{marginTop: 40, paddingHorizontal: 10}}>
+                    <Text style={{fontWeight: 'bold'}}>Discount or Reward Code</Text>
+                    <Text style={{marginBottom: 5, color: 'gray', marginTop: 5}}>Enter a discount/reward code</Text>
+                    <View style={{flexDirection: 'row', height: 30, marginVertical: 10, borderWidth: 0.5, borderRadius: 5, borderColor: 'gray'}}>
+                        <TextInput
+                            autoCapitalize="characters" 
+                            autoCorrect={false}
+                            style={{width: '100%', height: 30}}
+                            placeholder="Discount code"
+                            placeholderTextColor="lightgray"
+                            defaultValue={authContext.discountCode}
+                            onSubmitEditing={({nativeEvent: {text, eventCount, target}})=>{
+                                setCode(text);
+                                handleSubmitDiscount(text);
+                            }}
+                            style={{borderRadius: 2, paddingHorizontal: 5, width: '100%'}}
+                            >
+                        
+                        </TextInput>
+
+                        {authContext.discountBool === true ? <MaterialCommunityIcons name="check-circle" color="green" style = {{position: 'absolute', right: 5, marginTop: 5}} size={20}/> : null}
+                        
+                    </View>
+                </View>
+            <Text style={{alignSelf: 'flex-start', marginLeft: 5, color: 'gray', marginTop: -5}}>{discountErrorMessage}</Text>
+
+            <Text style={{fontWeight: 'bold', marginTop: 30, paddingHorizontal: 10, fontSize: 15}}>Total</Text>
+
+            <View style={{paddingHorizontal: 10}}>
+                <View style={{flexDirection: 'row', width: '100%', marginTop: 10, color: 'gray'}}>
+                    <Text style={{ marginTop: 20, color: 'gray'}}>Subtotal</Text>
+                    <MaterialCommunityIcons name="information-outline" style={{marginTop: 20, color: 'gray', marginLeft: 10}}/>
+                    <Text style={{ marginTop: 20, position: 'absolute', right: 0, color: 'gray'}}>${authContext.rounded(authContext.cartSubTotal).toFixed(2)}</Text>
+                </View>
+
+                {authContext.discountBool === true ? <View><View style={{flexDirection: 'row', width: '100%', color: 'gray'}}>
+                    <Text style={{marginTop: 5, color: 'green', fontWeight: 'bold'}}>Discount</Text>
+                    <Text style={{marginTop: 5, color: 'green', fontWeight: 'bold', position: 'absolute', right: 0}}>- ${authContext.rounded(Number(authContext.discount)).toFixed(2)}</Text>
+                </View> 
+                
+                <View style={{flexDirection: 'row', width: '100%', marginTop: 5, marginBottom: 10, color: 'gray'}}>
+                    <Text style={{color: 'gray'}}>Subtotal</Text>
+                    <MaterialCommunityIcons name="information-outline" style={{color: 'gray', marginLeft: 10}}/>
+                    <Text style={{position: 'absolute', right: 0, color: 'gray'}}>${authContext.rounded(authContext.cartSubTotal).toFixed(2)-authContext.rounded(Number(authContext.discount)).toFixed(2)}</Text>
+                </View>
+                          
+                </View>
+                
+                
+                
+                
+                
+                
+                : null}
+
+                <View style={{flexDirection: 'row', width: '100%', color: 'gray'}}>
+                    
+                    <Text style={{marginTop: 5, color: 'gray'}}>Estimated taxes</Text>
+                    <MaterialCommunityIcons name="information-outline" style={{marginTop: 5, color: 'gray', marginLeft: 10}}/>
+                    <Text style={{marginTop: 5, color: 'gray', position: 'absolute', right: 0}}>${authContext.rounded(authContext.taxes).toFixed(2)}</Text> 
+                </View>
+                <View style={{flexDirection: 'row', width: '100%', color: 'gray'}}>
+                    <Text style={{marginTop: 5, color: 'gray'}}>Service fee</Text>
+                    <MaterialCommunityIcons name="information-outline" style={{marginTop: 5, color: 'gray', marginLeft: 10}}/>
+                    <Text style={{marginTop: 5, color: 'gray', position: 'absolute', right: 0}}>${authContext.rounded(authContext.serviceFee).toFixed(2)}</Text>
+                </View>
+
+                <View style={{flexDirection: 'row', width: '100%', color: 'gray', paddingBottom: 10}}>
+                    <Text style={{marginTop: 5, color: 'gray'}}>Tip</Text>
+                    <MaterialCommunityIcons name="information-outline" style={{marginTop: 5, color: 'gray', marginLeft: 10}}/>
+                    <Text style={{marginTop: 5, color: 'gray', position: 'absolute', right: 0}}>${authContext.rounded(authContext.tip).toFixed(2)}</Text>
+                </View>
+
+
+                <View style={{flexDirection: 'row', width: '100%', marginBottom: 5, borderTopWidth: 0.5, borderTopColor: 'gray', }}>
+                    <Text style={{fontWeight: 'bold', marginTop: 5}}>Total</Text>
+                    <Text style={{fontWeight: 'bold', marginTop: 5, position: 'absolute', right: 0}}>${authContext.rounded(authContext.cartSubTotal - authContext.discount+ authContext.taxes + authContext.serviceFee + authContext.tip).toFixed(2)}</Text>
+                </View> 
+            </View>
+
+            <View style={{marginTop: 40, paddingHorizontal: 10}}>
                     <Text style={{fontWeight: 'bold'}}>Tip</Text>
                     <Text style={{marginBottom: 5, color: 'gray', marginTop: 5}}>Tip {authContext.cartRestaurant.restaurant.name}</Text>
                     <View style={{flexDirection: 'row'}}>
@@ -277,39 +457,6 @@ export default function Cart({route}){
                         })}
                     </View>
                 </View>
-
-            <Text style={{fontWeight: 'bold', marginTop: 50, paddingHorizontal: 10, fontSize: 15}}>Total</Text>
-
-            <View style={{paddingHorizontal: 10}}>
-                <View style={{flexDirection: 'row', width: '100%', marginTop: 10, color: 'gray'}}>
-                    <Text style={{ marginTop: 20, color: 'gray'}}>Subtotal</Text>
-                    <MaterialCommunityIcons name="information-outline" style={{marginTop: 20, color: 'gray', marginLeft: 10}}/>
-                    <Text style={{ marginTop: 20, position: 'absolute', right: 0, color: 'gray'}}>${authContext.rounded(authContext.cartSubTotal).toFixed(2)}</Text>
-                </View>
-                <View style={{flexDirection: 'row', width: '100%', color: 'gray'}}>
-                    
-                    <Text style={{marginTop: 5, color: 'gray'}}>Estimated taxes</Text>
-                    <MaterialCommunityIcons name="information-outline" style={{marginTop: 5, color: 'gray', marginLeft: 10}}/>
-                    <Text style={{marginTop: 5, color: 'gray', position: 'absolute', right: 0}}>${authContext.rounded(authContext.taxes).toFixed(2)}</Text> 
-                </View>
-                <View style={{flexDirection: 'row', width: '100%', color: 'gray'}}>
-                    <Text style={{marginTop: 5, color: 'gray'}}>Service fee</Text>
-                    <MaterialCommunityIcons name="information-outline" style={{marginTop: 5, color: 'gray', marginLeft: 10}}/>
-                    <Text style={{marginTop: 5, color: 'gray', position: 'absolute', right: 0}}>${authContext.rounded(authContext.serviceFee).toFixed(2)}</Text>
-                </View>
-
-                <View style={{flexDirection: 'row', width: '100%', color: 'gray', borderBottomWidth: 0.5, borderBottomColor: 'gray', paddingBottom: 10}}>
-                    <Text style={{marginTop: 5, color: 'gray'}}>Tip</Text>
-                    <MaterialCommunityIcons name="information-outline" style={{marginTop: 5, color: 'gray', marginLeft: 10}}/>
-                    <Text style={{marginTop: 5, color: 'gray', position: 'absolute', right: 0}}>${authContext.rounded(authContext.tip).toFixed(2)}</Text>
-                </View>
-
-                <View style={{flexDirection: 'row', width: '100%', marginBottom: 5}}>
-                    <Text style={{fontWeight: 'bold', marginTop: 5}}>Total</Text>
-                    <Text style={{fontWeight: 'bold', marginTop: 5, position: 'absolute', right: 0}}>${authContext.rounded(authContext.cartSubTotal + authContext.taxes + authContext.serviceFee + authContext.tip).toFixed(2)}</Text>
-                </View> 
-            </View>
-
 
             {/* <View>
                 <Text style={{fontWeight: 'bold', marginTop: 20}}>Pickup time</Text>

@@ -355,7 +355,6 @@ const setWeekdayAndTimeArrays = async ()=>{
 }
   return (
     <View>
-                {console.log("A".slice(0, 3))}
 
         <RenderContent/>   
 

@@ -111,18 +111,20 @@ export default function ItemModal({item, selections, preferences, itemQuantity, 
         authContext.setCartNumber(totalQuantity);
         authContext.updateCart(cartTemp);
         await authContext.setCartSubTotal(cartSubTotalTemp)
+        await authContext.handleSubmitDiscount(authContext.discountCode).then(async(discount)=>{
         var taxesTemp = 0;
-        if (cartSubTotalTemp<4){
-          await authContext.setTaxes((cartSubTotalTemp*0.05));
-          taxesTemp = (cartSubTotalTemp*0.05);
+        if ((Number(cartSubTotalTemp)-Number(discount))<4){
+          await authContext.setTaxes(((Number(cartSubTotalTemp)-Number(discount))*0.05));
+          taxesTemp = ((Number(cartSubTotalTemp)-Number(discount))*0.05);
 
         } else{
-          await authContext.setTaxes((cartSubTotalTemp*0.13));
-          taxesTemp = (cartSubTotalTemp*0.13)
+          await authContext.setTaxes(((Number(cartSubTotalTemp)-Number(discount))*0.13));
+          taxesTemp = ((Number(cartSubTotalTemp)-Number(discount))*0.13)
         }
-        await setTip(cartSubTotalTemp).then(async (tip) => {
-        await setPaymentMethod(cartSubTotalTemp, tip, taxesTemp);
+        await setTip((Number(cartSubTotalTemp)-Number(discount))).then(async (tip) => {
+        await setPaymentMethod((Number(cartSubTotalTemp)-Number(discount)), tip, taxesTemp);
         });
+        })
         authContext.setEditItem(false);
       // navigation.navigate("Search2", {screen: route.params.restaurant["name"], params: {restaurant: route.params.restaurant, itemsArr: itemArr, modals: modalsTemp}})
     
@@ -507,7 +509,7 @@ export default function ItemModal({item, selections, preferences, itemQuantity, 
         <View style={{flexDirection: 'row'}}>
           <TouchableOpacity onPress={()=>{
             authContext.updateCart([]);
-            authContext.updateCartRestaurant();
+            authContext.updateCartRestaurant({});
             handleAddCart();
             setDiffRestaurantCartPrompt(false);
             }}><View><Text>Yes</Text></View></TouchableOpacity>

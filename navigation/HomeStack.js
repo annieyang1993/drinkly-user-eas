@@ -90,7 +90,7 @@ function TabNavigator(){
 export default function HomeStack(){
     const { user } = useContext(AuthenticatedUserContext);
     const [cart, updateCart] = useState([]);
-    const [cartRestaurant, updateCartRestaurant] = useState();
+    const [cartRestaurant, updateCartRestaurant] = useState({});
     const [subtotal, setSubtotal] = useState(0);
     const [location, setLocation] = useState();
     const [locationSet, setLocationSet] = useState(false);
@@ -134,8 +134,10 @@ export default function HomeStack(){
     const [quickCheckoutObject, setQuickCheckoutObject] = useState({})
     const [discountCode, setDiscountCode] = useState('')
     const [discount,setDiscount] = useState(0)
+    const [discountBool, setDiscountBool] = useState(false);
     const [cartBool, setCartBool] = useState(false);
     const [rewards, setRewards] = useState({});
+    const [cartSubTotalDiscount, setCartSubTotalDiscount] = useState(0);
     const [rewardsArray, setRewardsArray] = useState([]);
 
     
@@ -198,7 +200,7 @@ export default function HomeStack(){
     }
 
     const getRewards = async () =>{
-        const rewardsFirebase = await Firebase.firestore().collection('users').doc(user.uid).collection('rewards').get();
+        const rewardsFirebase = await Firebase.firestore().collection('users').doc(user.uid).collection('rewards').where("used", "==", false).get();
         const rewardsTemp = {};
         const rewardsArrayTemp = [];
         rewardsFirebase.docs.map((reward, i)=>{
@@ -290,6 +292,83 @@ export default function HomeStack(){
         })
 
         setOrderList(tempOrders);            
+    }
+
+    const handleSubmitDiscount = async (text) =>{
+        var found = false;
+        var index = 0;
+      if (cartRestaurant!== undefined){
+
+          rewardsArray.map((reward, i)=>{
+              if (rewards[reward]["code"]===text && rewards[reward]["restaurant_id"]===cartRestaurant.info){
+                  found = true;
+                  index = i;
+              }
+          })
+      }
+
+        if (text===''){
+            setDiscount(0);
+            setDiscountCode('')
+            setDiscountBool(false);
+        }
+
+        else if (found === true){
+            setDiscountBool(true);
+            var discountTotal = 0;
+            if (rewards[rewardsArray[index]]["reward_type"]==="Drink"){
+                const {cartIndex, itemprice} = await findLowestPriceIndex();
+                console.log("PRICE HERE", itemprice);
+                console.log(Number(itemprice)<Number(rewards[rewardsArray[index]]["max_reward_cost"]))
+                if (Number(itemprice)<Number(rewards[rewardsArray[index]]["max_reward_cost"])){
+                    setDiscount(itemprice);
+                    discountTotal = itemprice;
+                } else{
+                     setDiscount(Number(rewards[rewardsArray[index]]["max_reward_cost"]));
+                     discountTotal = Number(rewards[rewardsArray[index]]["max_reward_cost"]);
+                }
+            }
+
+            if ((cartSubTotal-discountTotal)<4){
+                setTaxes((cartSubTotal-discountTotal)*0.05);
+            } else{
+                setTaxes((cartSubTotal-discountTotal)*0.13);
+            }
+
+            setTip(Number(cartSubTotal)-Number(discountTotal), tipIndex);
+            if (rounded(Number(cartSubTotal-Number(discountTotal))) === 0){
+                setServiceFee(0);
+            }
+
+            
+            setDiscountCode(text);
+
+        } else{
+            setDiscountBool(false);
+            setDiscount(0);
+            setDiscountCode('')
+        }
+
+        return(discountTotal);
+        
+    }
+
+    const findLowestPriceIndex = async () => {
+        var index = 0;
+        var itemprice = 0;
+        cart.map((item, i)=>{
+            
+            if (i===0){
+                itemprice = rounded(Number(item["total_price"])).toFixed(2);
+            } else{
+                if (rounded(Number(item["total_price"])).toFixed(2)<Number(itemprice)){
+                    index = i;
+                    itemprice = rounded(Number(item["total_price"])).toFixed(2);
+                }
+            }
+
+        })
+        return {index, itemprice}
     }
 
     // const getDiscounts = async () =>{
@@ -917,11 +996,12 @@ export default function HomeStack(){
     cartSubTotal, setCartSubTotal, prevScreen, setPrevScreen, prevScreenParams, setPrevScreenParams, cartNumber, setCartNumber,
     taxes, setTaxes, serviceFee, setServiceFee, drinklyCash, setDrinklyCash, userData, setUserData,
     dayIndex, setDayIndex, timeIndex, setTimeIndex, orderList, setOrderList, pointsList, setPointsList, locationSet, setLocationSet,
-    search, setSearch, discounts, setDiscounts, savedRestaurants, setSavedRestaurants, savedRestaurantsObject, setSavedRestaurantsObject,
+    search, setSearch, discounts, setDiscounts, discountBool, setDiscountBool, savedRestaurants, setSavedRestaurants, savedRestaurantsObject, setSavedRestaurantsObject,
     quickCheckoutList, setQuickCheckoutList, quickCheckoutObject, setQuickCheckoutObject, tip, setTip, discount, setDiscount, 
     discountCode, setDiscountCode, rounded, paymentMethods, setPaymentMethods, defaultPaymentId, setDefaultPaymentId,
     drinklyCashAmount, setDrinklyCashAmount, paymentMethod, setPaymentMethod, icon, setIcon, tipIndex, setTipIndex, 
-    tipsArray, cartBool, setCartBool, userCity, setUserCity, userCountry, setUserCountry, getRestaurants, rewards, setRewards, rewardsArray, setRewardsArray}}>
+    tipsArray, cartBool, setCartBool, userCity, setUserCity, userCountry, setUserCountry, getRestaurants, rewards, setRewards, rewardsArray, setRewardsArray,
+    handleSubmitDiscount, findLowestPriceIndex}}>
         <Stack.Navigator style={{height: '90%'}}>
             <Stack.Screen 
                     name="Tabs" 
@@ -940,14 +1020,14 @@ export default function HomeStack(){
 
         </Stack.Navigator>
 
-        {cart.length=== 0 || cartBool === true ? null : 
+        {cart.length=== 0  ? null : 
         <TouchableOpacity style={{position: 'absolute', bottom: '11%', width: '95%', alignSelf: 'center', paddingVertical: 11, paddingHorizontal: 30, backgroundColor: '#119aa3', borderRadius: 20, textAlign: 'center', shadowColor: 'black', 
                     shadowOffset: {width: 2, height: 2}, 
                     shadowRadius: 3, 
                     shadowOpacity: 0.6}} onPress={()=>setWeekdayAndTimeArrays().then(()=>{navigation.navigate("Cart"); setCartBool(true)})}>
             <View ><Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', fontSize: 16}}>
                 <MaterialCommunityIcons name="cart" color='white' size={18} style={{paddingRight: 10}}/>
-                {cartRestaurant.restaurant.name} - {cartNumber} item(s)</Text></View>
+                 {cartRestaurant.restaurant.name} - {cartNumber} item(s)</Text></View>
         </TouchableOpacity> }
 
         

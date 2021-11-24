@@ -6,6 +6,7 @@ import {NavigationContainer, useNavigationContainerRef} from '@react-navigation/
 import AuthContext from '../context/Context'
 import HomePage from '../pages/HomePage'
 import RestaurantPage from '../pages/RestaurantModal'
+import RewardsPage from '../pages/RewardsPage'
 
 export default function HomeNavigation(){
     const Stack = createStackNavigator();
@@ -18,6 +19,7 @@ export default function HomeNavigation(){
             <Stack.Navigator  screenOptions={{headerShown: false}}>
                 <Stack.Screen  cardStyle='white' name="Home Page" options={{title: ""}} component={HomePage} options={{headerShown: false}}/>
                 <Stack.Screen  cardStyle='white' name="Restaurant Page" options={{title: ""}} component={RestaurantPage} options={{headerShown: false}}/>
+                <Stack.Screen  cardStyle='white' name="Rewards Page" options={{title: ""}} component={RewardsPage} options={{headerShown: false}}/>
             </Stack.Navigator>
         </View>
     )

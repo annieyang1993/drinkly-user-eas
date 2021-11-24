@@ -309,15 +309,19 @@ const setTip = async (subtotal)=>{
       await authContext.setCartSubTotal((preferenceSelections["quantity"]*itemTotal))
         
       var taxesTemp = 0;
-      if ((preferenceSelections["quantity"]*itemTotal)<4){
-        await authContext.setTaxes(((preferenceSelections["quantity"]*itemTotal)*0.05));
-        taxesTemp = ((preferenceSelections["quantity"]*itemTotal)*0.05);
+      authContext.setDiscount(0);
+      authContext.setDiscountCode('');
+      authContext.setDiscountBool(false);
+
+      if ((Number(preferenceSelections["quantity"]*itemTotal))<4){
+        await authContext.setTaxes(((Number(preferenceSelections["quantity"]*itemTotal))*0.05));
+        taxesTemp = ((Number(preferenceSelections["quantity"]*itemTotal))*0.05);
       } else{
-        await authContext.setTaxes(((preferenceSelections["quantity"]*itemTotal)*0.13));
-        taxesTemp = ((preferenceSelections["quantity"]*itemTotal)*0.13);
+        await authContext.setTaxes(((Number(preferenceSelections["quantity"]*itemTotal))*0.13));
+        taxesTemp = ((Number(preferenceSelections["quantity"]*itemTotal))*0.13);
       }
-      await setTip((preferenceSelections["quantity"]*itemTotal)).then(async (tip) => {
-        await setPaymentMethod((preferenceSelections["quantity"]*itemTotal), tip, taxesTemp);
+      await setTip((Number(preferenceSelections["quantity"]*itemTotal))).then(async (tip) => {
+        await setPaymentMethod((Number(preferenceSelections["quantity"]*itemTotal)), tip, taxesTemp);
       });
       authContext.updateCartRestaurant({info: `${route.params.restaurant["name"]}-${route.params.restaurant["street"][0]}-${route.params.restaurant["city"]}`, restaurant: route.params.restaurant, modals: modalsTemp})
       setModalVisibles()
@@ -357,17 +361,17 @@ const setTip = async (subtotal)=>{
         }
         authContext.updateCart(cartTemp);
         await authContext.setCartSubTotal(authContext.cartSubTotal+(preferenceSelections["quantity"]*itemTotal))
-
+        await authContext.handleSubmitDiscount(authContext.discountCode);
         var taxesTemp = 0;
-        if ((authContext.cartSubTotal+(preferenceSelections["quantity"]*itemTotal))<4){
-          await authContext.setTaxes((authContext.cartSubTotal+(preferenceSelections["quantity"]*itemTotal))*0.05);
-          taxesTemp = (authContext.cartSubTotal+(preferenceSelections["quantity"]*itemTotal))*0.05;
+        if ((Number(authContext.cartSubTotal) - Number(authContext.discount) +(Number(preferenceSelections["quantity"])*Number(itemTotal)))<4){
+          await authContext.setTaxes((Number(authContext.cartSubTotal) - Number(authContext.discount) +(Number(preferenceSelections["quantity"])*Number(itemTotal)))*0.05);
+          taxesTemp = (Number(authContext.cartSubTotal) - Number(authContext.discount) +(Number(preferenceSelections["quantity"])*Number(itemTotal)))*0.05;
         } else{
-          await authContext.setTaxes((authContext.cartSubTotal+(preferenceSelections["quantity"]*itemTotal))*0.13);
-          taxesTemp = (authContext.cartSubTotal+(preferenceSelections["quantity"]*itemTotal))*0.13;
+          await authContext.setTaxes((Number(authContext.cartSubTotal) - Number(authContext.discount) +(Number(preferenceSelections["quantity"])*Number(itemTotal)))*0.13);
+          taxesTemp = (Number(authContext.cartSubTotal) - Number(authContext.discount) +(Number(preferenceSelections["quantity"])*Number(itemTotal)))*0.13;
         }
-        await setTip(authContext.cartSubTotal+(preferenceSelections["quantity"]*itemTotal)).then(async (tip) => {
-        await setPaymentMethod(authContext.cartSubTotal+(preferenceSelections["quantity"]*itemTotal), tip, taxesTemp);
+        await setTip(Number(authContext.cartSubTotal) - Number(authContext.discount) +(Number(preferenceSelections["quantity"])*Number(itemTotal))).then(async (tip) => {
+        await setPaymentMethod((Number(authContext.cartSubTotal) - Number(authContext.discount) +(Number(preferenceSelections["quantity"])*Number(itemTotal))), tip, taxesTemp);
         });
         setModalVisibles()
         authContext.setCartNumber(authContext.cartNumber+preferenceSelections["quantity"])
@@ -403,17 +407,20 @@ const setTip = async (subtotal)=>{
       authContext.setCartRestaurantItems(itemArr);
       authContext.setCartRestaurantHours(route.params.times)
       authContext.setCartNumber(preferenceSelections["quantity"])
+      authContext.setDiscount(0);
+      authContext.setDiscountCode('');
+      authContext.setDiscountBool(false);
       await authContext.setCartSubTotal(preferenceSelections["quantity"]*itemTotal)
       var taxesTemp = 0;
-      if ((preferenceSelections["quantity"]*itemTotal)<4){
-        await authContext.setTaxes(((preferenceSelections["quantity"]*itemTotal)*0.05));
-        taxesTemp = ((preferenceSelections["quantity"]*itemTotal)*0.05)
+      if ((Number(preferenceSelections["quantity"])*Number(itemTotal))<4){
+        await authContext.setTaxes(((Number(preferenceSelections["quantity"])*Number(itemTotal))*0.05));
+        taxesTemp = ((Number(preferenceSelections["quantity"])*Number(itemTotal))*0.05)
       } else{
-        await authContext.setTaxes(((preferenceSelections["quantity"]*itemTotal)*0.13));
-        taxesTemp = ((preferenceSelections["quantity"]*itemTotal)*0.13);
+        await authContext.setTaxes(((Number(preferenceSelections["quantity"])*Number(itemTotal))*0.13));
+        taxesTemp = ((Number(preferenceSelections["quantity"])*Number(itemTotal))*0.13);
       }
-      await setTip(preferenceSelections["quantity"]*itemTotal).then(async (tip) => {
-        await setPaymentMethod(preferenceSelections["quantity"]*itemTotal, tip, taxesTemp);
+      await setTip(Number(preferenceSelections["quantity"])*Number(itemTotal)).then(async (tip) => {
+        await setPaymentMethod((Number(preferenceSelections["quantity"])*Number(itemTotal)), tip, taxesTemp);
         });
       // navigation.navigate("Search2", {screen: route.params.restaurant["name"], params: {restaurant: route.params.restaurant, itemsArr: itemArr, modals: modalsTemp}})
     
@@ -800,7 +807,7 @@ const setTip = async (subtotal)=>{
           
           onPress={()=>{
             authContext.updateCart([]);
-            authContext.updateCartRestaurant();
+            authContext.updateCartRestaurant({});
             handleAddCartNew();
             setModalVisibles();
             setDiffRestaurantCartPrompt(false);

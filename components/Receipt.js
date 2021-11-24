@@ -69,7 +69,7 @@ export default function Receipt(){
                     navigation.navigate("Orders");
                     authContext.setCartBool(false);
                     authContext.updateCart([]);
-                    authContext.updateCartRestaurant();
+                    authContext.updateCartRestaurant({});
                     authContext.setItemTotals([]);
                     authContext.setWeekDayArray(['Today']);
                     authContext.setDateTimeArray({});
@@ -83,6 +83,9 @@ export default function Receipt(){
                     authContext.setTimeIndex(0);
                     authContext.setTip(0);
                     authContext.setDiscountCode('');
+                    authContext.setDiscount(0);
+                    authContext.setDiscountBool(false);
+                    authContext.setTipIndex(1)
         
 
                     getOrders();

@@ -188,10 +188,10 @@ export default function HomeNavigation({navigation}){
                 <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={{flexDirection: 'row', height: 100, width: '100%', alignSelf: 'flex-end'}}>
                     {authContext.rewardsArray.map((reward, j)=>{
                             return(
-                                <View key={j} style={{margin: 5, marginLeft: 15, height: 75, width: 150, borderRadius: 15, backgroundColor: '#bdeaed', padding: 10, alignItems: 'center', borderWidth: 1, borderColor: '#44bec6', borderStyle: 'dashed'}}>
+                                <TouchableOpacity key={j} onPress={()=>{navigation.navigate("Rewards Page", {reward: authContext.rewards[reward]})}} style={{margin: 5, marginLeft: 15, height: 75, width: 150, borderRadius: 15, backgroundColor: '#bdeaed', padding: 10, alignItems: 'center', borderWidth: 1, borderColor: '#44bec6', borderStyle: 'dashed'}}>
                                     <Text numberOfLines={1} style={{alignSelf: 'center', marginBottom: 5}}>{authContext.rewards[reward]["restaurant_name"]}</Text>
                                     <MaterialCommunityIcons name="ticket" color={'#44bec6'} size={30}/>
-                                </View>
+                                </TouchableOpacity>
                             )
                         
                     })}
@@ -278,7 +278,7 @@ export default function HomeNavigation({navigation}){
 
         <Modal visible={itemModal} backgroundColor='white' animationType='slide' style={{zIndex: 500}}>
             <View style={{height: '95%', width: '100%', backgroundColor: 'white', position: 'absolute', bottom: '0%'}}>
-            <ItemModal item={item} selections={selections}/>
+            {/* <ItemModal item={item} selections={selections}/> */}
             </View>
                 <TouchableOpacity
                     style={{backgroundColor: 'white',

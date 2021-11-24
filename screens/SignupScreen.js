@@ -80,7 +80,7 @@ export default function SignupScreen({ navigation }) {
             Firebase.firestore().collection('users').doc(`${cred.user.uid}`).set({
               firstName: firstName, lastName: lastName, number: number, email: email, drinkly_bool: false,
               default_payment_id: null, default_brand: null, default_lastFour: null,
-              drinkly_cash: 0
+              drinkly_cash: 0, rewards_collected: 0
             }, {merge: true}).then(()=>{
           })
           
