@@ -56,35 +56,35 @@ export default function Cart({route}){
     }
 
       const setTip = async (subtotal, i)=>{
-    if (i === 0){
-      await authContext.setTip(0);
-      return 0
-    } else if (i===1){
-      await authContext.setTip(0.05 * subtotal)
-      return (0.05 * subtotal)
-    } else if (i===2){
-      await authContext.setTip(0.1 * subtotal)
-      return (0.1 * subtotal)
-    } else if (i===3){
-      await authContext.setTip(0.15 * subtotal)
-      return (0.15 * subtotal)
-    } else if (i===4){
-      await authContext.setTip(0.18 * subtotal)
-      return (0.18 * subtotal)
+        if (i === 0){
+        await authContext.setTip(0);
+        return 0
+        } else if (i===1){
+        await authContext.setTip(0.05 * subtotal)
+        return (0.05 * subtotal)
+        } else if (i===2){
+        await authContext.setTip(0.1 * subtotal)
+        return (0.1 * subtotal)
+        } else if (i===3){
+        await authContext.setTip(0.15 * subtotal)
+        return (0.15 * subtotal)
+        } else if (i===4){
+        await authContext.setTip(0.18 * subtotal)
+        return (0.18 * subtotal)
+        }
     }
-  }
 
     const setPaymentMethod = async (subtotal, tip, taxes) =>{
-    const paymentMethodTemp = authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || authContext.drinklyCash === false ? (authContext.defaultPaymentId=== undefined ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash';
-    await authContext.setPaymentMethod(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || authContext.drinklyCash === false ? (authContext.defaultPaymentId=== undefined ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash')
-    await authContext.setIcon(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || authContext.drinklyCash === false ? (authContext.defaultPaymentId=== undefined ? '' : 'credit-card') : 'cash')
-    if (paymentMethodTemp === 'Drinkly Cash'){
-      await authContext.setServiceFee(0);
-    } else{
-      await authContext.setServiceFee(0.15);
-    }
+        const paymentMethodTemp = authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || authContext.drinklyCash === false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId === '' ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash';
+        await authContext.setPaymentMethod(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || authContext.drinklyCash === false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId === ''? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash')
+        await authContext.setIcon(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || authContext.drinklyCash === false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId === ''? '' : 'credit-card') : 'cash')
+        if (paymentMethodTemp === 'Drinkly Cash'){
+        await authContext.setServiceFee(0);
+        } else{
+        await authContext.setServiceFee(0.15);
+        }
 
-  }
+    }
 
     const checkContinue = async () =>{
       if (authContext.paymentMethod === 'Please select a payment method'){
@@ -150,6 +150,7 @@ export default function Cart({route}){
                     modalsTemp[item["name"]] = false;
                 })
                 navigation.navigate("Cart Restaurant Page", {restaurant: authContext.cartRestaurant.restaurant, itemsArr: authContext.cartRestaurantItems, modals: modalsTemp, times: authContext.cartRestaurantHours})
+                setErrorMessage('');
                 }}>
                 <Text style={{fontWeight: 'bold', fontSize: 13, color: '#4b4c4c'}}>+ Add Items</Text>
             </TouchableOpacity>
@@ -167,6 +168,7 @@ export default function Cart({route}){
                     
                 </View></TouchableOpacity>
                 </View>
+
 
                 <View style={{width: '80%', borderBottomWidth: 1, borderBottomColor: 'lightgray', paddingBottom: 10}}>
                     <View style={{flexDirection: 'row'}}>
@@ -248,7 +250,7 @@ export default function Cart({route}){
                 <Text style={{marginBottom: 5, color: 'gray', marginTop: 5}}>Select a payment method</Text>
                 
                 <View style={{borderBottomWidth: 0.5, borderColor: 'gray', padding: 5, marginVertical: 10, width: '100%'}}>
-                    <TouchableOpacity style={{flexDirection: 'row'}} onPress={()=>navigation.navigate("Payment Methods")}>
+                    <TouchableOpacity style={{flexDirection: 'row'}} onPress={()=>{navigation.navigate("Payment Methods"); setErrorMessage('')}}>
                     <MaterialCommunityIcons name={authContext.icon} size={17} color={'gray'}/>
                     <Text style={{color: 'gray', marginLeft: authContext.paymentMethod === 'Please select a payment method' ? 0 : 10}}>
                         {authContext.paymentMethod}

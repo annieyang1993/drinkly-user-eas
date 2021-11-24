@@ -48,8 +48,8 @@ export default function Receipt(){
                     <Text style={{alignSelf: 'center', color: 'gray'}}>Get directions</Text>
                 </TouchableOpacity>
             
-                <Text style={{paddingVertical: 10, alignSelf: 'center', paddingTop: 70, marginLeft: 10, fontWeight: 'bold'}}>You've earned 1 point from </Text>            
-                <Text style={{paddingVertical: 10, alignSelf: 'center', marginLeft: 10, fontWeight: 'bold'}}>{authContext.cartRestaurant.restaurant.name}. </Text>            
+                <Text style={{paddingVertical: 10, alignSelf: 'center', paddingTop: 70, marginLeft: 10, fontWeight: 'bold'}}>You've earned {authContext.cartRestaurant.restaurant.points_per_purchase} point from </Text>            
+                <Text style={{paddingVertical: 10, alignSelf: 'center', marginLeft: 10, fontWeight: 'bold'}}>{authContext.cartRestaurant.restaurant.name} </Text>            
                 <MaterialCommunityIcons name="ticket" size={50} style={{alignSelf: 'center', color: '#119aa3'}}/> 
                 </View> : null}
             </ScrollView>
@@ -79,10 +79,10 @@ export default function Receipt(){
                     authContext.setCartSubTotal(0);
                     authContext.setTaxes(0);
                     authContext.setServiceFee(0);
-                    authContext.setDrinklyCash(false);
                     authContext.setDayIndex(0);
                     authContext.setTimeIndex(0);
                     authContext.setTip(0);
+                    authContext.setDiscountCode('');
         
 
                     getOrders();

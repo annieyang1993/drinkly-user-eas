@@ -9,20 +9,33 @@ export default function PaymentMethods({navigation}){
     const authContext = useContext(AuthContext);
     const [creditCardModal, setCreditCardModal] = useState(false);
 
-    const toggleSwitch = async () => {
-            const tempBool = !authContext.drinklyCash;
-            await authContext.setDrinklyCash(!authContext.drinklyCash)
-            await authContext.setPaymentMethod(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < authContext.cartSubTotal || tempBool === false ? (authContext.defaultPaymentId=== undefined ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash')
-            await authContext.setIcon(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (authContext.cartSubTotal) || tempBool === false ? (authContext.defaultPaymentId === undefined ? '' : 'credit-card') : 'cash')
-            if (tempBool === true){
-                authContext.setServiceFee(0);
-            } else{
-                authContext.setServiceFee(0.15);
-            }
-     
-     
-     
+       const toggleSwitch = async () => {
+        console.log(authContext.defaultPaymentId)
+        const tempBool = !authContext.drinklyCash;
+        
+        await setPaymentMethod(authContext.cartSubTotal, authContext.tip, authContext.taxes, !authContext.drinklyCash);
+        await authContext.setDrinklyCash(!authContext.drinklyCash)
+        await Firebase.firestore().collection('users').doc(`${authContext.user.uid}`).set({drinkly_bool: !authContext.drinklyCash}, {merge: true});
+        // await authContext.setPaymentMethod(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < authContext.cartSubTotal || tempBool === false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId=== '' ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash')
+        // await authContext.setIcon(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (authContext.cartSubTotal) || tempBool === false ? (authContext.defaultPaymentId === undefined || authContext.defaultPaymentId=== '' ? '' : 'credit-card') : 'cash')
+        // if (tempBool === true){
+        //     authContext.setServiceFee(0);
+        // } else{
+        //     authContext.setServiceFee(0.15);
+        // }
+    }
+
+    const setPaymentMethod = async (subtotal, tip, taxes, bool) =>{
+        const paymentMethodTemp = authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || bool=== false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId === '' ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash';
+        await authContext.setPaymentMethod(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || bool=== false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId === ''? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash')
+        await authContext.setIcon(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || bool=== false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId === ''? '' : 'credit-card') : 'cash')
+        if (paymentMethodTemp === 'Drinkly Cash'){
+        await authContext.setServiceFee(0);
+        } else{
+        await authContext.setServiceFee(0.15);
         }
+
+    }
 
     return(
         <View style={{height: Dimensions.get("screen").height, width: '100%', marginTop: 'auto', backgroundColor: 'white'}}>
@@ -52,7 +65,7 @@ export default function PaymentMethods({navigation}){
                     </View>
 
                     <View style={{backgroundColor: 'white',  marginTop: 20, width: '95%', alignSelf: 'center', borderRadius: 15, height: 150, shadowColor: 'black', shadowOffset: {width: 3, height: 3}, shadowRadius: 10, shadowOpacity: 0.3, opacity: authContext.drinklyCash ? 1 : 0.3}}>
-                    <Text style={{alignSelf: 'center', color: '#a7a9a9', fontSize: 40, fontWeight: '400', textAlign: 'center', marginTop: 30, paddingVertical: 20, borderRadius: 15}}>${authContext.drinklyCashAmount === undefined ? 0 : authContext.drinklyCashAmount}</Text>
+                    <Text style={{alignSelf: 'center', color: '#a7a9a9', fontSize: 40, fontWeight: '400', textAlign: 'center', marginTop: 30, paddingVertical: 20, borderRadius: 15}}>${authContext.drinklyCashAmount === undefined ? 0 : authContext.rounded(Number(authContext.drinklyCashAmount)).toFixed(2)}</Text>
                     </View>
                     <View style={{width: '100%', flexDirection: 'row', marginTop: 20, marginBottom: 20}}>
                         <Text style={{fontSize: 16, fontWeight: 'bold'}}>Credit Cards</Text>
@@ -76,6 +89,8 @@ export default function PaymentMethods({navigation}){
                     <TouchableOpacity style={{alignSelf: 'center', marginTop: 30, marginBottom: 100}} onPress={()=>navigation.navigate("Add Payment")}>
                         <Text style={{color: 'gray'}}>+ Add Card</Text>
                     </TouchableOpacity>
+
+                    <View style={{height: 100}}></View>
                 </View>
                 
             </ScrollView>

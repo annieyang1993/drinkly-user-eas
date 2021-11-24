@@ -1,18 +1,19 @@
 import AuthContext from '../context/Context'
 import React, {useContext, useState, useEffect} from 'react';
-import {Button, ScrollView, View, StyleSheet, TextInput, TouchableOpacity, TouchableHighlight, Text, Modal, Image, Dimensions } from 'react-native';
+import {Button, ScrollView, View, StyleSheet, TextInput, TouchableOpacity, TouchableHighlight, Text, Modal, Image, Dimensions, ActivityIndicator } from 'react-native';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ItemModal from '../pages/ItemModal'
 import {Firebase, db, functions} from '../config/firebase';
 import {Stripe, CardField, StripeProvider,useConfirmPayment, useConfirmSetupIntent, createToken, createPaymentMethod} from '@stripe/stripe-react-native'
 import { AuthenticatedUserContext } from '../navigation/AuthenticatedUserProvider';
+import PaymentMethods from '../pages/PaymentsList';
 
 
 export default function Payments(){
     const authContext = useContext(AuthContext);
     const navigation = useNavigation();
-    const errorBool = false;
+    const [errorBool, setErrorBool] = useState(false);
     const [cardholder, setCardholder] = useState();
     const [cardDetails, setCardDetails] = useState();
     const { confirmPayment } = useConfirmPayment();
@@ -23,6 +24,8 @@ export default function Payments(){
     const createEphemeralKey = functions.httpsCallable('createEphemeralKey')
     const [loading, setLoading] = useState(false);
     const { user } = useContext(AuthenticatedUserContext);
+    const [status, setStatus] = useState(0);
+    const [errorMessage, setErrorMessage] = useState('Card error, please try again.');
 
     // const paymentRequest= async ()=>{
 
@@ -74,6 +77,9 @@ export default function Payments(){
     //Create setup intent on backend and returns the client secret to use within confirmSetupIntent
     const getClientSecret = async () => {
         await setLoading(true);
+        setErrorBool(false);
+        
+
         const response = await fetch('https://us-central1-drinkly-user.cloudfunctions.net/createSetupIntent', {
             method: 'POST',
             headers: {
@@ -90,7 +96,10 @@ export default function Payments(){
             billingDetails: {cardholder}
         })
         if (error){
-            console.log(error);
+            await setStatus(1);
+            await setLoading(false);
+            setErrorMessage('Card error, please try again.')
+            setErrorBool(true);
         } else{
             await Firebase.firestore().collection('users').doc(authContext.user.uid).collection('payment_methods').doc(`${cardDetails.brand}-${cardDetails.expiryYear}-${cardDetails.last4}`).set({
                 payment_id: setupIntent.paymentMethodId,
@@ -125,9 +134,13 @@ export default function Payments(){
             userDataTemp["default_lastFour"]  = cardDetails.last4
             await authContext.setUserData(userDataTemp);
             await authContext.setDefaultPaymentId(setupIntent.paymentMethodId);
+            await setLoading(false);
+            await setStatus(2);
+            await new Promise(res => setTimeout(res, 1000));
+            navigation.pop(1);
            
         }
-         await setLoading(false);
+         
     }
 
 
@@ -154,12 +167,33 @@ export default function Payments(){
                         setCardDetails(cardDetails)
                     }}
                     />
-                    {errorBool ? <Text>Card error, please try again.</Text> : <Text></Text>}
+                    {errorBool ? <Text>{errorMessage}</Text> : <Text></Text>}
                     
-                    <Button disabled = {loading} onPress={()=>getClientSecret()} title="Add Card"/>
+                    <Button disabled = {loading} onPress={async()=>{
+                        var cardExists = false;
+                        
+                        authContext.paymentMethods.map(async (paymentMethod, i)=>{
+                                if (cardDetails.last4 === paymentMethod.lastFour){
+                                    
+                                    cardExists = true;
+                                }
+                        })
+                            if (cardExists === false){
+                                getClientSecret();
+                            } else{
+                                await setErrorMessage('You have already added this card.');
+                                await setErrorBool(true);
+                            }
+                        
+                    }} title="Add Card"/>
+
+                    
                 
                     
                 </View>
+
+                {loading === true ? <ActivityIndicator size='large' style={{alignSelf: 'center'}}/> : null}
+                {status === 2 ? <MaterialCommunityIcons name="check-circle" size={25} color='green' style={{alignSelf: 'center'}}/> : null}
             
                 </StripeProvider> 
             </ScrollView>

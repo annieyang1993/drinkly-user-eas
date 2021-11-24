@@ -186,15 +186,14 @@ export default function HomeNavigation({navigation}){
             <ScrollView showsVerticalScrollIndicator={false} style={{backgroundColor: 'white', height: '100%'}}>
                 <Text style={{fontWeight: 'bold', fontSize: 17, marginBottom: 10, marginHorizontal: 20, marginTop: 10}}>Discounts and rewards</Text>
                 <ScrollView horizontal={true} showsHorizontalScrollIndicator={false} style={{flexDirection: 'row', height: 100, width: '100%', alignSelf: 'flex-end'}}>
-                    {Object.keys(authContext.pointsList).map((reward, j)=>{
-                        if (authContext.pointsList[reward]["rewards"]>=1){
+                    {authContext.rewardsArray.map((reward, j)=>{
                             return(
                                 <View key={j} style={{margin: 5, marginLeft: 15, height: 75, width: 150, borderRadius: 15, backgroundColor: '#bdeaed', padding: 10, alignItems: 'center', borderWidth: 1, borderColor: '#44bec6', borderStyle: 'dashed'}}>
-                                    <Text numberOfLines={1} style={{alignSelf: 'center', marginBottom: 5}}>{authContext.pointsList[reward]["restaurant_name"]}</Text>
+                                    <Text numberOfLines={1} style={{alignSelf: 'center', marginBottom: 5}}>{authContext.rewards[reward]["restaurant_name"]}</Text>
                                     <MaterialCommunityIcons name="ticket" color={'#44bec6'} size={30}/>
                                 </View>
                             )
-                        }
+                        
                     })}
                     <View style={{margin: 5, marginLeft: 15, height: 75, width: 150, borderRadius: 15, backgroundColor: '#ecefef', padding: 10, alignItems: 'center'}}>
                         <Text numberofLines={3} style={{fontSize: 12.5, color: '#acadad', alignSelf: 'center', width: 130, height: 60, textAlign: 'center', marginBottom: 5}}>Save cafes or purchase items to see more discount codes.</Text>

@@ -135,6 +135,8 @@ export default function HomeStack(){
     const [discountCode, setDiscountCode] = useState('')
     const [discount,setDiscount] = useState(0)
     const [cartBool, setCartBool] = useState(false);
+    const [rewards, setRewards] = useState({});
+    const [rewardsArray, setRewardsArray] = useState([]);
 
     
     const [tip, setTip] = useState(0);
@@ -149,6 +151,7 @@ export default function HomeStack(){
     const navigation = useNavigation();
     const Stack = createStackNavigator();
 
+
     const [appState, setAppState] = useState(AppState.currentState);
 
 
@@ -160,7 +163,6 @@ export default function HomeStack(){
         const savedRestaurantsObjectTemp = {};
         await collect.docs.map((doc, i)=>{
             tempList[i] = doc.data();   
-            console.log(doc.data());
                     
             if (userDataTemp["saved"]!==undefined){
                 if (userDataTemp["saved"].includes(doc.id)){
@@ -193,6 +195,20 @@ export default function HomeStack(){
             paymentsTempArray.push(payment.data());
         })
         await setPaymentMethods(paymentsTempArray);
+    }
+
+    const getRewards = async () =>{
+        const rewardsFirebase = await Firebase.firestore().collection('users').doc(user.uid).collection('rewards').get();
+        const rewardsTemp = {};
+        const rewardsArrayTemp = [];
+        rewardsFirebase.docs.map((reward, i)=>{
+            rewardsTemp[reward.id] = reward.data();
+            rewardsArrayTemp.push(reward.id);
+        })
+
+        setRewards(rewardsTemp);
+        setRewardsArray(rewardsArrayTemp);
+
     }
 
 
@@ -242,6 +258,7 @@ export default function HomeStack(){
         setUserData(userTemp.data());
         setDefaultPaymentId(userTemp.data().default_payment_id===undefined || userTemp.data().default_payment_id===null ? '' : userTemp.data().default_payment_id);
         setDrinklyCashAmount(userTemp.data().drinkly_cash===undefined || userTemp.data().drinkly_cash===null ? 0 : userTemp.data().drinkly_cash);
+        setDrinklyCash(userTemp.data().drinkly_bool);
         return userTemp.data();
         
     }
@@ -296,6 +313,7 @@ export default function HomeStack(){
         getOrders();
         getPoints();
         getPayments();
+        getRewards();
 
 
 
@@ -903,7 +921,7 @@ export default function HomeStack(){
     quickCheckoutList, setQuickCheckoutList, quickCheckoutObject, setQuickCheckoutObject, tip, setTip, discount, setDiscount, 
     discountCode, setDiscountCode, rounded, paymentMethods, setPaymentMethods, defaultPaymentId, setDefaultPaymentId,
     drinklyCashAmount, setDrinklyCashAmount, paymentMethod, setPaymentMethod, icon, setIcon, tipIndex, setTipIndex, 
-    tipsArray, cartBool, setCartBool, userCity, setUserCity, userCountry, setUserCountry, getRestaurants}}>
+    tipsArray, cartBool, setCartBool, userCity, setUserCity, userCountry, setUserCountry, getRestaurants, rewards, setRewards, rewardsArray, setRewardsArray}}>
         <Stack.Navigator style={{height: '90%'}}>
             <Stack.Screen 
                     name="Tabs" 

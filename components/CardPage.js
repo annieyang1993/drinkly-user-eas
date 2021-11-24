@@ -22,6 +22,18 @@ export default function CardPage({route}){
     const createEphemeralKey = functions.httpsCallable('createEphemeralKey')
     const { user } = useContext(AuthenticatedUserContext);
 
+    const setPaymentMethod = async (subtotal, tip, taxes) =>{
+        const paymentMethodTemp = authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || authContext.drinklyCash === false ? 'Please select a payment method' : 'Drinkly Cash';
+        await authContext.setPaymentMethod(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || authContext.drinklyCash === false ? 'Please select a payment method' : 'Drinkly Cash')
+        await authContext.setIcon(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || authContext.drinklyCash === false ? '' : 'cash')
+        if (paymentMethodTemp === 'Drinkly Cash'){
+        await authContext.setServiceFee(0);
+        } else{
+        await authContext.setServiceFee(0.15);
+        }
+
+    }
+
     const deleteCard = async() =>{
         await Firebase.firestore().collection('users').doc(user.uid).collection('payment_methods').doc(`${route.params.card.brand}-${route.params.card.expiryYear}-${route.params.card.lastFour}`).delete();
         const paymentsTemp = authContext.paymentMethods.map((x)=>x);
@@ -45,7 +57,8 @@ export default function CardPage({route}){
             delete userDataTemp["default_brand"];
             delete userDataTemp["default_lastFour"];
             await authContext.setUserData(userDataTemp);
-            await authContext.setDefaultPaymentId();
+            await authContext.setDefaultPaymentId('');
+            await setPaymentMethod(authContext.cartSubTotal, authContext.tip, authContext.taxes);
         }
     }
 

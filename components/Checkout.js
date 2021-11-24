@@ -7,6 +7,8 @@ import ItemModal from '../pages/ItemModal'
 import {Firebase, db} from '../config/firebase';
 import {Picker} from '@react-native-picker/picker';
 import ScrollPicker from 'react-native-wheel-scroll-picker';
+import {Stripe, CardField, StripeProvider,useConfirmPayment, useConfirmSetupIntent, createToken, createPaymentMethod} from '@stripe/stripe-react-native'
+
 
 export default function Checkout(){
     const authContext = useContext(AuthContext);
@@ -16,8 +18,11 @@ export default function Checkout(){
     const [timeIndex, setTimeIndex] = useState(0)
     const [tips, setTips] = useState(0)
     const [tipIndex, setTipIndex] = useState(1)
+    const [errorMessage, setErrorMessage] = useState('')
     const [paymentModal, setPaymentModal] = useState(false)
     const tipsArray = ['No tip', '5%', '10%', '15%', '18%'];
+    const [paid, setPaid] = useState(false);
+    const { confirmPayment } = useConfirmPayment();
 
     const checkIncludes = (element, array)=>{
         if (array.includes(element)){
@@ -41,7 +46,60 @@ export default function Checkout(){
         authContext.setPointsList(tempPoints);
     }
 
+    const createCharge = async(amount) => {
+        const response = await fetch('https://us-central1-drinkly-user.cloudfunctions.net/createCharge', {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                customer_id: authContext.userData.stripeId,
+                amount: amount,
+                payment_id: authContext.userData.default_payment_id
+            })
+        }).then(async(response)=>{
+            response.json().then(async(responseJson)=>{
+                return(responseJson.id)
+            })
+        })
+        // const responseJson = await response.json();
+        // //console.log(useConfirmPayment(JSON.stringify(responseJson)))
+        // console.log(responseJson);
+    }
+
     const submitOrder = async () =>{
+        const total = Number(authContext.cartSubTotal) + Number(authContext.taxes) + Number(authContext.serviceFee) + Number(authContext.tip);
+        var submitted = false;
+        if (authContext.paymentMethod === 'Please select a payment method'){
+            setErrorMessage('Please select a payment method before placing order.')
+        } else if (authContext.paymentMethod === 'Credit card'){
+            setErrorMessage('');
+            await createCharge(authContext.rounded(authContext.rounded(total).toFixed(2)*100).toFixed(0)).then(async (id)=>{
+                const {success} = await confirmPayment(id)
+                console.log(success);
+                submitted = true;
+            });
+
+        } else if (authContext.paymentMethod === 'Drinkly Cash'){
+            if ((total) > authContext.drinklyCashAmount){
+                setErrorMessage('Insufficient funds in Drinkly Cash.');
+            } else{
+                authContext.setDrinklyCashAmount(authContext.rounded(authContext.drinklyCashAmount - total));
+                await Firebase.firestore().collection('users').doc(`${authContext.user.uid}`).set({drinkly_cash: authContext.rounded(authContext.drinklyCashAmount - total)}, {merge: true})
+                submitted = true;
+            }
+            
+        } else{
+            setErrorMessage('Unknown payment method')
+        }
+
+        if (submitted === true){
+            writeFirebase();
+        }
+    }
+
+    const writeFirebase = async () =>{
         var order_id = Math.random().toString(36);
         var ready_by = new Date().setDate(new Date().getDate()+authContext.dayIndex);
         if (authContext.afterClose===true){
@@ -71,6 +129,9 @@ export default function Checkout(){
         if (user_order_ids===undefined){
             user_order_ids = [];
         }
+
+
+
         const data = await Firebase.firestore().collection('users')
         .doc(`${authContext.user.uid}`)
         .collection('orders')
@@ -87,7 +148,6 @@ export default function Checkout(){
             subtotal: authContext.cartSubTotal,
             taxes: authContext.taxes,
             service_fee: authContext.serviceFee,
-            drinkly_cash: authContext.drinklyCash,
             restaurant_image: authContext.cartRestaurant.restaurant.pictures[0],
             created_at: new Date(),
             updated_at: new Date(),
@@ -97,7 +157,8 @@ export default function Checkout(){
             canceled: false,
             number_of_items: authContext.cartNumber,
             ready_by: ready_by,
-            tip: authContext.tip
+            tip: authContext.tip,
+            payment_method: authContext.paymentMethod
             
         });
 
@@ -117,7 +178,6 @@ export default function Checkout(){
             subtotal: authContext.cartSubTotal,
             taxes: authContext.taxes,
             service_fee: authContext.serviceFee,
-            drinkly_cash: authContext.drinklyCash,
             restaurant_image: authContext.cartRestaurant.restaurant.pictures[0],
             created_at: new Date(),
             updated_at: new Date(),
@@ -127,7 +187,8 @@ export default function Checkout(){
             number_of_items: authContext.cartNumber,
             canceled: false,
             ready_by: ready_by,
-            tip: authContext.tip
+            tip: authContext.tip,
+            payment_method: authContext.paymentMethod
         }).then(async()=>{
         authContext.cart.map(async (cartItem, i)=>{
             Firebase.firestore().collection('restaurants').doc(`${authContext.cartRestaurant.info}`).collection(`orders`).doc(`${order_id}`).collection('items').doc(`${i}`).set({
@@ -242,6 +303,7 @@ export default function Checkout(){
 
 
             ///DEALING WITH POINTS UPDATING 
+            if (authContext.cartRestaurant.restaurant.rewards === true){
             if (!(authContext.pointsList[`${authContext.cartRestaurant.info}`]===undefined)){
                 if (authContext.pointsList[`${authContext.cartRestaurant.info}`]["current_points"]
                 ===(Number(authContext.cartRestaurant.restaurant["max_points"])-Number(authContext.cartRestaurant.restaurant.points_per_purchase))){
@@ -261,6 +323,41 @@ export default function Checkout(){
                         restaurant_name: authContext.cartRestaurant.restaurant.name,
                         restaurant_card_pic: authContext.cartRestaurant.restaurant.rewards_card_pic,
                     })
+
+                    //WRITING REWARDS!!!
+                    const code = authContext.cartRestaurant.restaurant.name.slice(0,3)+"REWARD"
+                    const date = new Date().toLocaleDateString()+' '+new Date().toLocaleTimeString()
+                    await Firebase.firestore().collection('users')
+                    .doc(`${authContext.user.uid}`)
+                    .collection('rewards')
+                    .doc(`${code}-${date}-${authContext.user.uid}-${authContext.cartRestaurant.restaurant.restaurant_id}`)
+                    .set({
+                        user_id: authContext.user.uid,
+                        restaurant_id: authContext.cartRestaurant.restaurant.restaurant_id,
+                        created_at: new Date(),
+                        restaurant_name: authContext.cartRestaurant.restaurant.name,
+                        used: false,
+                        code: code,
+                        id: `${code}-${date}-${authContext.user.uid}-${authContext.cartRestaurant.restaurant.restaurant_id}`,
+                        max_reward_cost: authContext.cartRestaurant.restaurant.max_reward_cost,
+                        reward_type: authContext.cartRestaurant.restaurant.reward_type
+                    })
+
+                    const rewardsTemp = authContext.rewards;
+                    const rewardsArrayTemp = authContext.rewardsArray.map((x)=>x);
+                    rewardsTemp[`${code}-${date}-${authContext.user.uid}-${authContext.cartRestaurant.restaurant.restaurant_id}`] = {user_id: authContext.user.uid,
+                        restaurant_id: authContext.cartRestaurant.restaurant.restaurant_id,
+                        created_at: new Date(),
+                        restaurant_name: authContext.cartRestaurant.restaurant.name,
+                        used: false,
+                        code: code,
+                        id: `${code}-${date}-${authContext.user.uid}-${authContext.cartRestaurant.restaurant.restaurant_id}`,
+                        max_reward_cost: authContext.cartRestaurant.restaurant.max_reward_cost,
+                        reward_type: authContext.cartRestaurant.restaurant.reward_type}
+                    rewardsArrayTemp.push(`${code}-${date}-${authContext.user.uid}-${authContext.cartRestaurant.restaurant.restaurant_id}`);
+
+                    authContext.setRewards(rewardsTemp);
+                    authContext.setRewardsArray(rewardsArrayTemp);
                 } else{
                     await Firebase.firestore().collection('users')
                     .doc(`${authContext.user.uid}`)
@@ -305,6 +402,7 @@ export default function Checkout(){
                     })
             }
             getPoints();
+        }
             // authContext.setQuickCheckoutObject(quickCheckoutTemp);
             // authContext.setQuickCheckoutList(Object.keys(quickCheckoutTemp).reverse().slice(0, 4));
             // Object.keys(quickCheckoutTemp).reverse().slice(0, 4).map(async (quickCheckoutItem, j)=>{
@@ -358,9 +456,8 @@ export default function Checkout(){
         // setDrinklyCash(false);
         // setDayIndex(0);
         // setTimeIndex(0);
+        setErrorMessage('')
         navigation.navigate("Receipt");
-        
-        
     }
 
     return(
@@ -374,11 +471,11 @@ export default function Checkout(){
                     <Text style={{position: 'absolute', right: 0, paddingVertical: 10, color: 'gray'}}>{authContext.cartRestaurant.restaurant.street[0]}</Text>
                 </View>
                 <View style={{borderBottomWidth: 0.5, borderBottomColor: 'lightgray', }}>
-                    <TouchableOpacity onPress={()=>navigation.push("Payment Methods")}>
+                    <TouchableOpacity onPress={()=>{setErrorMessage(''); navigation.push("Payment Methods")}}>
                         <View style={{flexDirection: 'row', width: '100%'}}>
                             <MaterialCommunityIcons style={{paddingVertical: 10}} size={17} color = 'gray' name="credit-card-outline" />
                             <Text style={{paddingVertical: 10, marginLeft: 10, fontWeight: 'bold', color: 'gray'}}>Payment method </Text>
-                            <Text style={{position: 'absolute', right: 20, paddingVertical: 10, color: 'gray'}}>{authContext.paymentMethod}</Text>
+                            <Text style={{position: 'absolute', right: 20, paddingVertical: 10, color: 'gray'}}>{authContext.paymentMethod === 'Please select a payment method' ? 'Please select' : authContext.paymentMethod}</Text>
                             <MaterialCommunityIcons style={{paddingVertical: 10, position: 'absolute', right: 0}} size={17} name="chevron-right" color={'gray'} />
                         </View>
                    </TouchableOpacity>
@@ -401,6 +498,8 @@ export default function Checkout(){
                                     return( <Picker.Item key={i} label={String(p)} value={String(p)} />)
                                 })}
                             </Picker>
+
+
                             
                             
                             
@@ -428,12 +527,14 @@ export default function Checkout(){
 
             </ScrollView>
             <View style={{backgroundColor: 'white', bottom: '17%', position: 'absolute', width: '100%', height: 80}}>
-            <TouchableOpacity style={{position: 'absolute', top: '0%', width: '95%', alignSelf: 'center', paddingVertical: 11, shadowColor: 'black', 
+            <Text style = {{alignSelf: 'center', color: 'red', marginBottom: 1}}>{errorMessage}</Text>
+
+            <TouchableOpacity style={{width: '95%', alignSelf: 'center', paddingVertical: 11, shadowColor: 'black', 
                     shadowOffset: {width: 2, height: 2}, 
                     shadowRadius: 3, 
                     shadowOpacity: 0.8, paddingHorizontal: 30, backgroundColor: '#119aa3', borderRadius: 20, textAlign: 'center'}} 
-            onPress={()=>{
-                submitOrder();
+            onPress={async ()=>{
+                submitOrder()
                 // if (authContext.userData["default_card"]===undefined){
                 //     setPaymentModal(true)
                 // } else{
@@ -454,6 +555,7 @@ export default function Checkout(){
                 zIndex: 50,
                 }}
                 onPress={() => {
+                    setErrorMessage('');
                     navigation.pop(1)
                 }}>
                 <MaterialCommunityIcons name="arrow-left" size={22}/>

@@ -77,7 +77,11 @@ export default function SignupScreen({ navigation }) {
       } else{
         await auth.createUserWithEmailAndPassword(email, password)
           .then(function(cred){
-            Firebase.firestore().collection('users').doc(`${cred.user.uid}`).set({firstName: firstName, lastName: lastName, number: number, email: email}, {merge: true}).then(()=>{
+            Firebase.firestore().collection('users').doc(`${cred.user.uid}`).set({
+              firstName: firstName, lastName: lastName, number: number, email: email, drinkly_bool: false,
+              default_payment_id: null, default_brand: null, default_lastFour: null,
+              drinkly_cash: 0
+            }, {merge: true}).then(()=>{
           })
           
           })

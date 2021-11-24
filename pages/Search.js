@@ -341,7 +341,7 @@ const setWeekdayAndTimeArrays = async ()=>{
           : null}
           {authContext.locationSet === true && authContext.search.length !== 0 && numSearch === 0 ? <Text style={{width: '70%', alignSelf: 'center', opacity: 0.6, textAlign: 'center', marginTop: 100, color: 'gray', fontSize: 15, fontWeight: '500'}}>We're sorry, there are currently no cafes that match your search.</Text> : null}
           {authContext.locationSet === true && authContext.search.length === 0 && numCafesNear === 0 ? <View>
-          <Text style={{width: '70%', alignSelf: 'center', textAlign: 'center', marginTop: 80, color: 'gray', opacity: 0.6, fontSize: 15, fontWeight: '500'}}>We're sorry, there are no cafes in your area. We are rapidly expanding our cafe selection so please check back later!</Text> 
+          <Text style={{width: '70%', alignSelf: 'center', textAlign: 'center', marginTop: 80, color: 'gray', opacity: 0.6, fontSize: 15, fontWeight: '500'}}>We're sorry, there are no cafes in your area. We are rapidly expanding our cafe selection so please check back later! In the meantime, feel free to use our search bar to see cafes currently listed on the app.</Text> 
           <Image style = {{width: '50%', resizeMode: 'contain', height: 200, alignSelf: 'center', marginTop: 25, opacity: 0.2}} source={require('../assets/sadCoffeeGray.png')} />
           </View>: null}
             
@@ -355,6 +355,8 @@ const setWeekdayAndTimeArrays = async ()=>{
 }
   return (
     <View>
+                {console.log("A".slice(0, 3))}
+
         <RenderContent/>   
 
     </View>
