@@ -343,8 +343,8 @@ const setWeekdayAndTimeArrays = async ()=>{
           : null}
           {authContext.locationSet === true && authContext.search.length !== 0 && numSearch === 0 ? <Text style={{width: '70%', alignSelf: 'center', opacity: 0.6, textAlign: 'center', marginTop: 100, color: 'gray', fontSize: 15, fontWeight: '500'}}>We're sorry, there are currently no cafes that match your search.</Text> : null}
           {authContext.locationSet === true && authContext.search.length === 0 && numCafesNear === 0 ? <View>
-          <Text style={{width: '70%', alignSelf: 'center', textAlign: 'center', marginTop: 80, color: 'gray', opacity: 0.6, fontSize: 15, fontWeight: '500'}}>We're sorry, there are no cafes in your area. We are rapidly expanding our cafe selection so please check back later!</Text> 
-          <Image style = {{width: '50%', resizeMode: 'contain', height: 200, alignSelf: 'center', marginTop: 40, opacity: 0.2}} source={require('../assets/sadCoffeeEdited.png')} />
+          <Image style = {{width: '50%', resizeMode: 'contain', height: 200, alignSelf: 'center', marginTop: 100, opacity: 0.15}} source={require('../assets/sadCoffeeBlue2.png')} />
+          <Text style={{width: '50%', alignSelf: 'center', textAlign: 'center', marginTop: 10, color: '#119aa3', opacity: 0.4, fontSize: 15, fontWeight: '500'}}>We're sorry, there are no cafes in your area.</Text> 
           </View>: null}
             
       
