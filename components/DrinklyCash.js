@@ -1,6 +1,6 @@
 import AuthContext from '../context/Context'
 import React, {useContext, useState, useEffect} from 'react';
-import {Switch, Button, ScrollView, View, StyleSheet, TextInput, TouchableOpacity, TouchableHighlight, Text, Modal, Image, Dimensions, KeyboardAvoidingView } from 'react-native';
+import {Switch, Button, ScrollView, View, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, TouchableHighlight, Text, Modal, Image, Dimensions, KeyboardAvoidingView } from 'react-native';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ItemModal from '../pages/ItemModal'
@@ -33,7 +33,7 @@ export default function DrinklyCash({route}){
     const [addingCardState, setAddingCardState] = useState(0);
 
     const [errorMessageCard, setErrorMessageCard] = useState('');
-    
+    const [loadingPayment, setLoadingPayment] = useState(false);
 
     const toggleSwitch = async () => {
         const tempBool = !authContext.drinklyCash;
@@ -101,6 +101,7 @@ export default function DrinklyCash({route}){
     }
 
     const makeDefault = async(card) =>{
+        await setLoadingPayment(true);
         await Firebase.firestore().collection('users').doc(authContext.user.uid).set({
                 default_payment_id: card.payment_id,
                 default_brand: card.brand,
@@ -271,7 +272,7 @@ export default function DrinklyCash({route}){
 
                 <Text style={{alignSelf: 'center', color: 'red', marginTop: 20}}>{errorMessage}</Text>
 
-                {addingCashState === 2 ? <MaterialCommunityIcons name="check-circle" style={{position: 'absolute', bottom: '18%', alignSelf: 'center'}} size={25} color='green'/>  : null}
+               
                     
 
 
@@ -285,6 +286,8 @@ export default function DrinklyCash({route}){
                         }}>
                     <Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', fontSize: 16}}>Add {amountIndex !== -1 ? `$${amounts[amountIndex]}` : (amount==='' || isNaN(amount) || amount === undefined ? '' : `$${amount}`)} Drinkly Cash</Text>
             </TouchableOpacity> 
+
+             {addingCashState === 2 ? <MaterialCommunityIcons name="check-circle" style={{marginTop: 20, alignSelf: 'center'}} size={25} color='green'/>  : null}
 
             <View style={{height: 100}}></View>
 
@@ -322,7 +325,9 @@ export default function DrinklyCash({route}){
                                 </TouchableOpacity>
                             </View>
                         )
-                    })} 
+                    })}
+
+                {authContext.paymentMethods.length === 0 && loadingPayment ? <ActivityIndicator size="small" style={{marginTop: 10, alignSelf: 'center'}} />  : null}
 
                 {authContext.paymentMethods.length === 0 ?
                         <StripeProvider merchantIdentifier="merchant.identifier"
@@ -357,7 +362,7 @@ export default function DrinklyCash({route}){
                                         }
                                 })
                                     if (cardExists === false){
-                                        getClientSecret().then(()=>{addCash()})
+                                        getClientSecret().then(async()=>addCash())
                                     } else{
                                         await setErrorMessage('You have already added this card.');
                                         await setErrorBool(true);
@@ -367,12 +372,17 @@ export default function DrinklyCash({route}){
                                 
                                 
                                  title="Add Card"/>
+
+                                 {loading ? <ActivityIndicator size="small" style={{marginTop: 10, alignSelf: 'center'}} /> : null}
                         
                             
                         </View>
+
+                         <Text style={{color: 'gray', width: '80%', marginTop: 20, alignSelf: 'center'}}>We're currently in testing mode. Please use Stripe's test cards to test this integration.</Text>
                         
                     
                         </StripeProvider>  : null}
+                       
 
                 <View style={{height: 50}}></View>
                 </ScrollView> 

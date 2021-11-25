@@ -93,7 +93,7 @@ export default function HomeStack(){
     const [cartRestaurant, updateCartRestaurant] = useState({});
     const [subtotal, setSubtotal] = useState(0);
     const [location, setLocation] = useState();
-    const [locationSet, setLocationSet] = useState(false);
+    const [locationSet, setLocationSet] = useState(true);
     const [restaurants, setRestaurants] = React.useState({});
     const [paymentCards, setPaymentCards] = React.useState([]);
     const [defaultCard, setDefaultCard] = React.useState();
@@ -226,17 +226,19 @@ export default function HomeStack(){
             setLocation();
             setUserCity();
             setUserCountry();
+            getRestaurants();
             return;
         } else{
-            setLoadingRestaurants(true);
+            await setLoadingRestaurants(true);
             setLocationSet(true);
             let location = await Location.getCurrentPositionAsync({accuracy: Location.Accuracy.Highest});
             setLocation(location);
-            
+            await getRestaurants();
             const loc = await Location.reverseGeocodeAsync(location["coords"]).then((loc)=>{
                 setUserCity(loc[0]["city"]);
                 setUserCountry(loc[0]["country"]);
             });
+            await setLoadingRestaurants(false);
             
         }
     }
@@ -250,7 +252,7 @@ export default function HomeStack(){
             setUserCountry();
             return;
         } else{
-          setLoadingRestaurants(true);
+          await setLoadingRestaurants(true);
           setLocationSet(true);
             let location = await Location.getCurrentPositionAsync({accuracy: Location.Accuracy.Highest});
             setLocation(location);
@@ -259,6 +261,7 @@ export default function HomeStack(){
                 setUserCity(loc[0]["city"]);
                 setUserCountry(loc[0]["country"]);
             });
+            await setLoadingRestaurants(false)
             
         }
     }
@@ -312,7 +315,7 @@ export default function HomeStack(){
               if (rewards[reward]["code"]===text && rewards[reward]["restaurant_id"]===cartRestaurant.info){
                   found = true;
                   index = i;
-                  authContext.setDiscountId(authContext.rewards[reward]["id"]);
+                  setDiscountId(rewards[reward]["id"]);
               }
           })
       }
@@ -321,7 +324,7 @@ export default function HomeStack(){
             setDiscount(0);
             setDiscountCode('')
             setDiscountBool(false);
-            authContext.setDiscountId('');
+            setDiscountId('');
         }
 
         else if (found === true){
@@ -356,7 +359,7 @@ export default function HomeStack(){
             setDiscountBool(false);
             setDiscount(0);
             setDiscountCode('');
-            authContext.setDiscountId('');
+            setDiscountId('');
         }
 
         return(discountTotal);
@@ -398,7 +401,7 @@ export default function HomeStack(){
     useEffect(async ()=>{
         Geocoder.init("AIzaSyB9fx4NpEW1D65AvgJjzY-npVoFUf17FRg");
         getLocation();
-        getRestaurants();
+        
         getOrders();
         getPoints();
         getPayments();

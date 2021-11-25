@@ -196,6 +196,8 @@ export default function Payments(){
                 {status === 2 ? <MaterialCommunityIcons name="check-circle" size={25} color='green' style={{alignSelf: 'center'}}/> : null}
             
                 </StripeProvider> 
+
+                <Text style={{color: 'gray', width: '80%', marginTop: 20, alignSelf: 'center'}}>We're currently in testing mode. Please use Stripe's test cards to test this integration.</Text>
             </ScrollView>
             <TouchableOpacity
                 disabled = {loading}

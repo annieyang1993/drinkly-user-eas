@@ -323,9 +323,9 @@ const setWeekdayAndTimeArrays = async ()=>{
              }
           })}
 
-          {authContext.setLoadingRestaurants === true ? <ActivityIndicator size='large' style={{marginTop: 100, alignSelf: 'center'}}/> : null}
+          {/* {authContext.setLoadingRestaurants === true ? <ActivityIndicator size='large' style={{marginTop: 100, alignSelf: 'center'}}/> : null} */}
 
-          {authContext.setLoadingRestaurants === false && authContext.locationSet === false && authContext.search.length === 0? 
+          {authContext.locationSet === false && authContext.search.length === 0? 
           <View>
           <MaterialCommunityIcons name="map-marker" size={120} color='lightgray' style={{alignSelf: 'center', marginTop: 100, opacity: 0.5}}/>
 
@@ -341,10 +341,10 @@ const setWeekdayAndTimeArrays = async ()=>{
 
           </View>
           : null}
-          {authContext.setLoadingRestaurants === false && authContext.locationSet === true && authContext.search.length !== 0 && numSearch === 0 ? <Text style={{width: '70%', alignSelf: 'center', opacity: 0.6, textAlign: 'center', marginTop: 100, color: 'gray', fontSize: 15, fontWeight: '500'}}>We're sorry, there are currently no cafes that match your search.</Text> : null}
-          {authContext.setLoadingRestaurants === false && authContext.locationSet === true && authContext.search.length === 0 && numCafesNear === 0 ? <View>
+          {authContext.locationSet === true && authContext.search.length !== 0 && numSearch === 0 ? <Text style={{width: '70%', alignSelf: 'center', opacity: 0.6, textAlign: 'center', marginTop: 100, color: 'gray', fontSize: 15, fontWeight: '500'}}>We're sorry, there are currently no cafes that match your search.</Text> : null}
+          {authContext.locationSet === true && authContext.search.length === 0 && numCafesNear === 0 ? <View>
           <Text style={{width: '70%', alignSelf: 'center', textAlign: 'center', marginTop: 80, color: 'gray', opacity: 0.6, fontSize: 15, fontWeight: '500'}}>We're sorry, there are no cafes in your area. We are rapidly expanding our cafe selection so please check back later!</Text> 
-          <Image style = {{width: '50%', resizeMode: 'contain', height: 200, alignSelf: 'center', marginTop: 25, opacity: 0.2}} source={require('../assets/sadCoffeeGray.png')} />
+          <Image style = {{width: '50%', resizeMode: 'contain', height: 200, alignSelf: 'center', marginTop: 40, opacity: 0.2}} source={require('../assets/sadCoffeeEdited.png')} />
           </View>: null}
             
       

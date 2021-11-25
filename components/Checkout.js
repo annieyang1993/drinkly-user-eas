@@ -1,6 +1,6 @@
 import AuthContext from '../context/Context'
 import React, {useContext, useState, useEffect} from 'react';
-import { ScrollView, View, StyleSheet, TextInput, TouchableOpacity, TouchableHighlight, Text, Modal, Image, Dimensions } from 'react-native';
+import { ScrollView, View, StyleSheet, TextInput, TouchableOpacity, TouchableHighlight, Text, Modal, Image, Dimensions, ActivityIndicator } from 'react-native';
 import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ItemModal from '../pages/ItemModal'
@@ -23,6 +23,7 @@ export default function Checkout(){
     const tipsArray = ['No tip', '5%', '10%', '15%', '18%'];
     const [paid, setPaid] = useState(false);
     const { confirmPayment } = useConfirmPayment();
+    const [loading, setLoading] = useState(false);
 
     const checkIncludes = (element, array)=>{
         if (array.includes(element)){
@@ -69,6 +70,7 @@ export default function Checkout(){
     }
 
     const submitOrder = async () =>{
+        await setLoading(true);
         const total = Number(authContext.cartSubTotal) -Number(authContext.discount)+ Number(authContext.taxes) + Number(authContext.serviceFee) + Number(authContext.tip);
         var submitted = false;
         if (authContext.paymentMethod === 'Please select a payment method'){
@@ -103,6 +105,8 @@ export default function Checkout(){
 
         if (submitted === true){
             writeFirebase();
+        } else{
+            await setLoading(false);
         }
     }
 
@@ -508,6 +512,7 @@ export default function Checkout(){
         // setDrinklyCash(false);
         // setDayIndex(0);
         // setTimeIndex(0);
+        await setLoading(false);
         setErrorMessage('')
         navigation.navigate("Receipt");
     }
@@ -581,7 +586,9 @@ export default function Checkout(){
             <View style={{backgroundColor: 'white', bottom: '17%', position: 'absolute', width: '100%', height: 80}}>
             <Text style = {{alignSelf: 'center', color: 'red', marginBottom: 1}}>{errorMessage}</Text>
 
-            <TouchableOpacity style={{width: '95%', alignSelf: 'center', paddingVertical: 11, shadowColor: 'black', 
+            <TouchableOpacity 
+            disabled = {loading}
+            style={{width: '95%', alignSelf: 'center', height: 40, shadowColor: 'black', 
                     shadowOffset: {width: 2, height: 2}, 
                     shadowRadius: 3, 
                     shadowOpacity: 0.8, paddingHorizontal: 30, backgroundColor: '#119aa3', borderRadius: 20, textAlign: 'center'}} 
@@ -592,7 +599,8 @@ export default function Checkout(){
                 // } else{
                 // }
             }}>
-                    <Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', fontSize: 16}}>Place Order (${authContext.rounded(authContext.cartSubTotal -authContext.discount + authContext.taxes + authContext.serviceFee + authContext.tip).toFixed(2)})</Text>
+                    
+                    {loading ? <ActivityIndicator size="small" style={{alignSelf: 'center', marginTop: 10}}/> : <Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', marginTop: 10, fontSize: 16}}>Place Order (${authContext.rounded(authContext.cartSubTotal -authContext.discount + authContext.taxes + authContext.serviceFee + authContext.tip).toFixed(2)})</Text>}
             </TouchableOpacity> 
             </View>
             <TouchableOpacity
@@ -606,6 +614,7 @@ export default function Checkout(){
                 
                 zIndex: 50,
                 }}
+                disabled = {loading}
                 onPress={() => {
                     setErrorMessage('');
                     navigation.pop(1)
