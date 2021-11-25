@@ -79,6 +79,10 @@ export default function ItemModal({item, selections, preferences, itemQuantity, 
       await authContext.setServiceFee(0.15);
     }
 
+    console.log(authContext.drinklyCashAmount);
+    console.log(subtotal + tip + taxes)
+    console.log(paymentMethodTemp)
+
   }
 
   const handleAddCart = async ()=>{
@@ -109,9 +113,9 @@ export default function ItemModal({item, selections, preferences, itemQuantity, 
           cartSubTotalTemp+=cartItem["total_price"]*cartItem["quantity"]
         })
         authContext.setCartNumber(totalQuantity);
-        authContext.updateCart(cartTemp);
+        await authContext.updateCart(cartTemp);
         await authContext.setCartSubTotal(cartSubTotalTemp)
-        await authContext.handleSubmitDiscount(authContext.discountCode).then(async(discount)=>{
+        await authContext.handleSubmitDiscount(authContext.discountCode, cartTemp, cartSubTotalTemp).then(async(discount)=>{
         var taxesTemp = 0;
         if ((Number(cartSubTotalTemp)-Number(discount))<4){
           await authContext.setTaxes(((Number(cartSubTotalTemp)-Number(discount))*0.05));
@@ -443,7 +447,7 @@ export default function ItemModal({item, selections, preferences, itemQuantity, 
       <ScrollView showsVerticalScrollIndicator={false}>
       {item["img"]=== undefined ? <View style={{height: 20, width: '100%'}}></View> :
       <Image style = {{height: 250, borderRadius: 20}} source={{uri: item["img"]}}/>}
-        <View style={{padding: 20}}>
+        <View style={{padding: 20, marginTop: 25}}>
           <Text numberOfLines={1} style={{fontSize: 20, fontWeight: 'bold', }}>{item["name"]}</Text>
           <Text numberOfLines={2} style={{fontSize: 15, color: 'gray'}}>{item["description"]}</Text>
         </View> 

@@ -301,7 +301,7 @@ const setTip = async (subtotal)=>{
       index["preference_selections"] = preferenceSelections["preference_selections"];
       index["total_price"] = itemTotal;
       cartTemp.push(index);
-      authContext.updateCart(cartTemp);
+      await authContext.updateCart(cartTemp);
       var modalsTemp = {}
       Object.values(itemArr).map((item,i)=>{
         modalsTemp[item["name"]] = false;
@@ -359,19 +359,20 @@ const setTip = async (subtotal)=>{
           index["total_price"] = itemTotal;
           cartTemp.push(index);
         }
-        authContext.updateCart(cartTemp);
+        await authContext.updateCart(cartTemp);
         await authContext.setCartSubTotal(authContext.cartSubTotal+(preferenceSelections["quantity"]*itemTotal))
-        await authContext.handleSubmitDiscount(authContext.discountCode);
+        await authContext.handleSubmitDiscount(authContext.discountCode, cartTemp, authContext.cartSubTotal+(preferenceSelections["quantity"]*itemTotal)).then(async(discount)=>{
         var taxesTemp = 0;
-        if ((Number(authContext.cartSubTotal) - Number(authContext.discount) +(Number(preferenceSelections["quantity"])*Number(itemTotal)))<4){
-          await authContext.setTaxes((Number(authContext.cartSubTotal) - Number(authContext.discount) +(Number(preferenceSelections["quantity"])*Number(itemTotal)))*0.05);
-          taxesTemp = (Number(authContext.cartSubTotal) - Number(authContext.discount) +(Number(preferenceSelections["quantity"])*Number(itemTotal)))*0.05;
+        if ((Number(authContext.cartSubTotal) - Number(discount) +(Number(preferenceSelections["quantity"])*Number(itemTotal)))<4){
+          await authContext.setTaxes((Number(authContext.cartSubTotal) - Number(discount) +(Number(preferenceSelections["quantity"])*Number(itemTotal)))*0.05);
+          taxesTemp = (Number(authContext.cartSubTotal) - Number(discount) +(Number(preferenceSelections["quantity"])*Number(itemTotal)))*0.05;
         } else{
-          await authContext.setTaxes((Number(authContext.cartSubTotal) - Number(authContext.discount) +(Number(preferenceSelections["quantity"])*Number(itemTotal)))*0.13);
-          taxesTemp = (Number(authContext.cartSubTotal) - Number(authContext.discount) +(Number(preferenceSelections["quantity"])*Number(itemTotal)))*0.13;
+          await authContext.setTaxes((Number(authContext.cartSubTotal) - Number(discount) +(Number(preferenceSelections["quantity"])*Number(itemTotal)))*0.13);
+          taxesTemp = (Number(authContext.cartSubTotal) - Number(discount) +(Number(preferenceSelections["quantity"])*Number(itemTotal)))*0.13;
         }
-        await setTip(Number(authContext.cartSubTotal) - Number(authContext.discount) +(Number(preferenceSelections["quantity"])*Number(itemTotal))).then(async (tip) => {
-        await setPaymentMethod((Number(authContext.cartSubTotal) - Number(authContext.discount) +(Number(preferenceSelections["quantity"])*Number(itemTotal))), tip, taxesTemp);
+        await setTip(Number(authContext.cartSubTotal) - Number(discount) +(Number(preferenceSelections["quantity"])*Number(itemTotal))).then(async (tip) => {
+        await setPaymentMethod((Number(authContext.cartSubTotal) - Number(discount) +(Number(preferenceSelections["quantity"])*Number(itemTotal))), tip, taxesTemp);
+        });
         });
         setModalVisibles()
         authContext.setCartNumber(authContext.cartNumber+preferenceSelections["quantity"])
@@ -397,7 +398,7 @@ const setTip = async (subtotal)=>{
       index["preference_selections"] = preferenceSelections["preference_selections"];
       index["total_price"]=itemTotal;
       cartTemp.push(index);
-      authContext.updateCart(cartTemp);
+      await authContext.updateCart(cartTemp);
       var modalsTemp = {}
       Object.values(itemArr).map((item,i)=>{
         modalsTemp[item["name"]] = false;

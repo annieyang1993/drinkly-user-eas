@@ -139,6 +139,7 @@ export default function HomeStack(){
     const [rewards, setRewards] = useState({});
     const [cartSubTotalDiscount, setCartSubTotalDiscount] = useState(0);
     const [rewardsArray, setRewardsArray] = useState([]);
+    const [discountId, setDiscountId] = useState('')
 
     
     const [tip, setTip] = useState(0);
@@ -149,7 +150,8 @@ export default function HomeStack(){
     const [taxes, setTaxes] = useState(0);
     const [serviceFee, setServiceFee] = useState(paymentMethod === 'Drinkly Cash' ? 0 : 0.15);
     const tipsArray = ['No tip', '5%', '10%', '15%', '18%'];
-    const [tipIndex, setTipIndex] = useState(1)
+    const [tipIndex, setTipIndex] = useState(1);
+    const [loadingRestaurants, setLoadingRestaurants] = useState(false);;
     const navigation = useNavigation();
     const Stack = createStackNavigator();
 
@@ -158,6 +160,7 @@ export default function HomeStack(){
 
 
     const getRestaurants = async () =>{ 
+      await setLoadingRestaurants(true);
         const userDataTemp = await getUser();
         const collect = await Firebase.firestore().collection('restaurants').get();
         var tempList = {}
@@ -187,6 +190,7 @@ export default function HomeStack(){
         setQuickCheckoutList(Object.keys(quickCheckoutObjectTemp));
         setSavedRestaurants(savedRestaurantsTemp);
         setSavedRestaurantsObject(savedRestaurantsObjectTemp);
+        await setLoadingRestaurants(false)
 
     }
 
@@ -224,9 +228,11 @@ export default function HomeStack(){
             setUserCountry();
             return;
         } else{
+            setLoadingRestaurants(true);
+            setLocationSet(true);
             let location = await Location.getCurrentPositionAsync({accuracy: Location.Accuracy.Highest});
             setLocation(location);
-            setLocationSet(true);
+            
             const loc = await Location.reverseGeocodeAsync(location["coords"]).then((loc)=>{
                 setUserCity(loc[0]["city"]);
                 setUserCountry(loc[0]["country"]);
@@ -244,9 +250,11 @@ export default function HomeStack(){
             setUserCountry();
             return;
         } else{
+          setLoadingRestaurants(true);
+          setLocationSet(true);
             let location = await Location.getCurrentPositionAsync({accuracy: Location.Accuracy.Highest});
             setLocation(location);
-            setLocationSet(true);
+            
             const loc = await Location.reverseGeocodeAsync(location["coords"]).then((loc)=>{
                 setUserCity(loc[0]["city"]);
                 setUserCountry(loc[0]["country"]);
@@ -294,15 +302,17 @@ export default function HomeStack(){
         setOrderList(tempOrders);            
     }
 
-    const handleSubmitDiscount = async (text) =>{
+    const handleSubmitDiscount = async (text, cart, subtotal) =>{
         var found = false;
         var index = 0;
+        var discountTotal = 0;
       if (cartRestaurant!== undefined){
 
           rewardsArray.map((reward, i)=>{
               if (rewards[reward]["code"]===text && rewards[reward]["restaurant_id"]===cartRestaurant.info){
                   found = true;
                   index = i;
+                  authContext.setDiscountId(authContext.rewards[reward]["id"]);
               }
           })
       }
@@ -311,15 +321,14 @@ export default function HomeStack(){
             setDiscount(0);
             setDiscountCode('')
             setDiscountBool(false);
+            authContext.setDiscountId('');
         }
 
         else if (found === true){
             setDiscountBool(true);
-            var discountTotal = 0;
+            
             if (rewards[rewardsArray[index]]["reward_type"]==="Drink"){
-                const {cartIndex, itemprice} = await findLowestPriceIndex();
-                console.log("PRICE HERE", itemprice);
-                console.log(Number(itemprice)<Number(rewards[rewardsArray[index]]["max_reward_cost"]))
+                const {cartIndex, itemprice} = await findLowestPriceIndex(cart);
                 if (Number(itemprice)<Number(rewards[rewardsArray[index]]["max_reward_cost"])){
                     setDiscount(itemprice);
                     discountTotal = itemprice;
@@ -329,14 +338,14 @@ export default function HomeStack(){
                 }
             }
 
-            if ((cartSubTotal-discountTotal)<4){
-                setTaxes((cartSubTotal-discountTotal)*0.05);
+            if ((subtotal-discountTotal)<4){
+                setTaxes((subtotal-discountTotal)*0.05);
             } else{
-                setTaxes((cartSubTotal-discountTotal)*0.13);
+                setTaxes((subtotal-discountTotal)*0.13);
             }
 
-            setTip(Number(cartSubTotal)-Number(discountTotal), tipIndex);
-            if (rounded(Number(cartSubTotal-Number(discountTotal))) === 0){
+            setTip(Number(subtotal)-Number(discountTotal), tipIndex);
+            if (rounded(Number(subtotal-Number(discountTotal))) === 0){
                 setServiceFee(0);
             }
 
@@ -346,14 +355,15 @@ export default function HomeStack(){
         } else{
             setDiscountBool(false);
             setDiscount(0);
-            setDiscountCode('')
+            setDiscountCode('');
+            authContext.setDiscountId('');
         }
 
         return(discountTotal);
         
     }
 
-    const findLowestPriceIndex = async () => {
+    const findLowestPriceIndex = async (cart) => {
         var index = 0;
         var itemprice = 0;
         cart.map((item, i)=>{
@@ -1001,7 +1011,7 @@ export default function HomeStack(){
     discountCode, setDiscountCode, rounded, paymentMethods, setPaymentMethods, defaultPaymentId, setDefaultPaymentId,
     drinklyCashAmount, setDrinklyCashAmount, paymentMethod, setPaymentMethod, icon, setIcon, tipIndex, setTipIndex, 
     tipsArray, cartBool, setCartBool, userCity, setUserCity, userCountry, setUserCountry, getRestaurants, rewards, setRewards, rewardsArray, setRewardsArray,
-    handleSubmitDiscount, findLowestPriceIndex}}>
+    handleSubmitDiscount, findLowestPriceIndex, discountId, setDiscountId, loadingRestaurants, setLoadingRestaurants}}>
         <Stack.Navigator style={{height: '90%'}}>
             <Stack.Screen 
                     name="Tabs" 
@@ -1020,7 +1030,7 @@ export default function HomeStack(){
 
         </Stack.Navigator>
 
-        {cart.length=== 0  ? null : 
+        {cart.length=== 0 || cartBool === true ? null : 
         <TouchableOpacity style={{position: 'absolute', bottom: '11%', width: '95%', alignSelf: 'center', paddingVertical: 11, paddingHorizontal: 30, backgroundColor: '#119aa3', borderRadius: 20, textAlign: 'center', shadowColor: 'black', 
                     shadowOffset: {width: 2, height: 2}, 
                     shadowRadius: 3, 

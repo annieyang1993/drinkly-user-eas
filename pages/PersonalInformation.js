@@ -157,7 +157,7 @@ export default function PersonalInformation({navigation}){
                     onChangeText={text => setEmail(text)}
                 />
 
-                <TouchableOpacity style={{paddingVertical: 10, borderRadius: 5, backgroundColor: '#44bec6', width: 80, marginTop: 250, marginBottom: 10, alignSelf: 'center'}} onPress={async ()=>{
+                <TouchableOpacity style={{paddingVertical: 11, borderRadius: 5, backgroundColor: '#119aa3', width: 80, marginTop: 100, marginBottom: 10, alignSelf: 'center'}} onPress={async ()=>{
                     if (checkNumber(number)===false){
                         setErrorMessage('Please enter a valid phone number.')
                     } else{
@@ -197,7 +197,7 @@ export default function PersonalInformation({navigation}){
                     }
                     
                 }}>
-                    <Text style={{alignSelf: 'center', color: 'white', fontWeight: '500'}}>Submit</Text>
+                    <Text style={{alignSelf: 'center', color: 'white', fontWeight: 'bold'}}>Submit</Text>
                 </TouchableOpacity>
             
                 <Text>

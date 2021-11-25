@@ -67,12 +67,12 @@ export default function Receipt(){
                 }}
                 onPress={() => {
                     navigation.navigate("Orders");
+                    
                     authContext.setCartBool(false);
                     authContext.updateCart([]);
-                    authContext.updateCartRestaurant({});
                     authContext.setItemTotals([]);
-                    authContext.setWeekDayArray(['Today']);
-                    authContext.setDateTimeArray({});
+                    // authContext.setWeekDayArray(['Today']);
+                    // authContext.setDateTimeArray({});
                     authContext.setCartRestaurantHours({});
                     authContext.setBeforeOpen(false);
                     authContext.setAfterClose(false);

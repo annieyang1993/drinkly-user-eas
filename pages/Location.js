@@ -49,11 +49,11 @@ export default function PersonalInformation({navigation}){
 
                 <Text style={{fontWeight: 'bold', fontSize: 18}}>Location permissions</Text>
                 <Text style={{color: 'gray', fontSize: 14, fontWeight: '500'}}>This app requires location settings to search for nearby cafes. Please go to your app settings to turn on location services.</Text>
-                <TouchableOpacity style={{marginTop: 50, alignSelf: 'center', padding: 10, paddingHorizontal: 20, backgroundColor: '#44bec6', borderRadius: 10, shadowColor: 'black', 
+                <TouchableOpacity style={{marginTop: 50, alignSelf: 'center', padding: 10, paddingHorizontal: 20, backgroundColor: '#119aa3', borderRadius: 5, shadowColor: 'black', 
                     shadowOffset: {width: 1, height: 1}, 
                     shadowRadius: 2, 
                     shadowOpacity: 0.6}} onPress={()=>Linking.openURL('app-settings:')}>
-                    <Text style={{color: 'white', fontWeight: '500'}}>
+                    <Text style={{color: 'white', fontWeight: 'bold'}}>
                         Settings
                     </Text>
                 </TouchableOpacity>

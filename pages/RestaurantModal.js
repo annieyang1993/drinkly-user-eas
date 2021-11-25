@@ -283,25 +283,17 @@ function ItemModal({item, selections}){
 
   const handleAddCart = async ()=>{
     if (authContext.cart.length===0){
-      const cartTemp = [];
-      const index ={}
-      index["name"] = item["name"];
-      index["details"] = item;
-      index["quantity"] = preferenceSelections["quantity"];
-      index["preference_selections"] = preferenceSelections["preference_selections"];
-      index["total_price"] = itemTotal;
-      cartTemp.push(index);
-      authContext.updateCart(cartTemp);
+      
       var modalsTemp = {}
       Object.values(itemArr).map((item,i)=>{
         modalsTemp[item["name"]] = false;
       })
       var taxesTemp = 0;
         if ((Number(preferenceSelections["quantity"]*itemTotal))<4){
-          await authContext.setTaxes(((Number(preferenceSelections["quantity"]*itemTotal))*0.05));
+          await authContext.setTaxes(((Number(preferenceSelections["quantity"])*Number(itemTotal))*0.05));
           taxesTemp = ((Number(preferenceSelections["quantity"]*itemTotal))*0.05)
         } else{
-          await authContext.setTaxes((Number(preferenceSelections["quantity"]*itemTotal))*0.13);
+          await authContext.setTaxes((Number(preferenceSelections["quantity"])*Number(itemTotal))*0.13);
           taxesTemp = ((Number(preferenceSelections["quantity"]*itemTotal))*0.13)
         }
         await authContext.updateCartRestaurant({info: `${route.params.restaurant["name"]}-${route.params.restaurant["street"][0]}-${route.params.restaurant["city"]}`, restaurant: route.params.restaurant, modals: modalsTemp})
@@ -315,7 +307,17 @@ function ItemModal({item, selections}){
           await setPaymentMethod((Number(preferenceSelections["quantity"]*itemTotal)), tip, taxesTemp);
         });
 
-        await setModalVisibles()
+        const cartTemp = [];
+      const index ={}
+      index["name"] = item["name"];
+      index["details"] = item;
+      index["quantity"] = preferenceSelections["quantity"];
+      index["preference_selections"] = preferenceSelections["preference_selections"];
+      index["total_price"] = itemTotal;
+      cartTemp.push(index);
+      authContext.updateCart(cartTemp);
+
+       setModalVisibles()
 
       
       
@@ -341,8 +343,8 @@ function ItemModal({item, selections}){
           index["total_price"] = itemTotal;
           cartTemp.push(index);
         }
-        authContext.updateCart(cartTemp);
-        await authContext.handleSubmitDiscount(authContext.discountCode).then(async(discount)=>{
+        await authContext.updateCart(cartTemp);
+        await authContext.handleSubmitDiscount(authContext.discountCode, cartTemp, authContext.cartSubTotal+(preferenceSelections["quantity"]*itemTotal)).then(async(discount)=>{
         await authContext.setCartSubTotal(authContext.cartSubTotal+(preferenceSelections["quantity"]*itemTotal))
         var taxesTemp = 0;
         if ((Number(authContext.cartSubTotal) - Number(discount) +(Number(preferenceSelections["quantity"])*Number(itemTotal)))<4){
@@ -383,7 +385,7 @@ function ItemModal({item, selections}){
       index["preference_selections"] = preferenceSelections["preference_selections"];
       index["total_price"]=itemTotal;
       cartTemp.push(index);
-      authContext.updateCart(cartTemp);
+      await authContext.updateCart(cartTemp);
       var modalsTemp = {}
       Object.values(itemArr).map((item,i)=>{
         modalsTemp[item["name"]] = false;

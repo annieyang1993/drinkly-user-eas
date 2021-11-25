@@ -39,6 +39,8 @@ export default function OrderPage({route}){
                     <Text style={{fontSize: 15, position: 'absolute', right: 0, marginTop: 25, fontWeight: 'bold'}}>${authContext.rounded(route.params.order["subtotal"]).toFixed(2)}</Text>
                 </View>
 
+
+
                 <View style={{flexDirection: 'row', paddingVertical: 2, paddingTop: 20, marginHorizontal: 30}}>
                     <Text style={{fontSize: 15, fontWeight: 'bold'}}>Taxes </Text>
                     <Text style={{fontSize: 15, position: 'absolute', right: 0, marginTop: 20, fontWeight: 'bold'}}>${authContext.rounded(route.params.order["taxes"]).toFixed(2)}</Text>
@@ -55,9 +57,11 @@ export default function OrderPage({route}){
                 </View>
 
                 <View style={{flexDirection: 'row', paddingVertical: 5, paddingTop: 30, marginHorizontal: 30}}>
-                    <Text style={{fontSize: 17, fontWeight: 'bold'}}>Total </Text>
-                    <Text style={{fontSize: 17, position: 'absolute', right: 0, marginTop: 30, fontWeight: 'bold'}}>${(authContext.rounded((route.params.order["subtotal"]))+authContext.rounded(route.params.order["tip"])+authContext.rounded(route.params.order["taxes"])+authContext.rounded(route.params.order["service_fee"])).toFixed(2)}</Text>
+                    <Text style={{fontSize: 15, fontWeight: 'bold'}}>Total </Text>
+                    <Text style={{fontSize: 15, position: 'absolute', right: 0, marginTop: 30, fontWeight: 'bold'}}>${(authContext.rounded((route.params.order["subtotal"]))+authContext.rounded(route.params.order["tip"])+authContext.rounded(route.params.order["taxes"])+authContext.rounded(route.params.order["service_fee"])).toFixed(2)}</Text>
                 </View>
+
+                <View style={{height: 200}}></View>
 
 
             </View>

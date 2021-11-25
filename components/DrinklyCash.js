@@ -38,7 +38,7 @@ export default function DrinklyCash({route}){
     const toggleSwitch = async () => {
         const tempBool = !authContext.drinklyCash;
         
-        await setPaymentMethod(authContext.cartSubTotal, authContext.tip, authContext.taxes, !authContext.drinklyCash);
+        await setPaymentMethod(authContext.cartSubTotal-authContext.discount, authContext.tip, authContext.taxes, !authContext.drinklyCash);
         await authContext.setDrinklyCash(!authContext.drinklyCash)
         await Firebase.firestore().collection('users').doc(`${cred.user.uid}`).set({drinkly_bool: !authContext.drinklyCash}, {merge: true});
         // await authContext.setPaymentMethod(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < authContext.cartSubTotal || tempBool === false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId=== '' ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash')
@@ -224,7 +224,7 @@ export default function DrinklyCash({route}){
                 <View style={{width: '90%', marginBottom: 20, borderRadius: 15, height: 150, backgroundColor: 'white', shadowColor: 'black', marginTop: 20, opacity: authContext.drinklyCash ? 1 : 0.5, shadowOffset: {width: 3, height: 3}, shadowRadius: 10, shadowOpacity: 0.3, alignSelf: 'center'}}>
                 
                     <View>
-                    <Text style={{alignSelf: 'center', marginBottom: 50, color: '#a7a9a9', fontSize: 40, fontWeight: '400', marginTop: 30, width: '90%', textAlign: 'center', paddingVertical: 20, borderRadius: 15, }}>${authContext.userData.drinkly_cash === undefined ? 0 : authContext.rounded(Number(authContext.userData.drinkly_cash).toFixed(2))}</Text>
+                    <Text style={{alignSelf: 'center', marginBottom: 50, color: '#a7a9a9', fontSize: 40, fontWeight: '400', marginTop: 30, width: '90%', textAlign: 'center', paddingVertical: 20, borderRadius: 15, }}>${authContext.userData.drinkly_cash === undefined ? 0 : authContext.rounded(Number(authContext.drinklyCashAmount).toFixed(2))}</Text>
                     </View>
                 </View>
 
@@ -271,18 +271,11 @@ export default function DrinklyCash({route}){
 
                 <Text style={{alignSelf: 'center', color: 'red', marginTop: 20}}>{errorMessage}</Text>
 
-                
-                
-            </ScrollView>
-
-                    {addingCashState === 2 ? <MaterialCommunityIcons name="check-circle" style={{position: 'absolute', bottom: '18%', alignSelf: 'center'}} size={25} color='green'/>  : null}
+                {addingCashState === 2 ? <MaterialCommunityIcons name="check-circle" style={{position: 'absolute', bottom: '18%', alignSelf: 'center'}} size={25} color='green'/>  : null}
                     
 
 
-            <TouchableOpacity style={{marginTop: 200, width: '95%', alignSelf: 'center', position: 'absolute', bottom: '10%', paddingVertical: 11, paddingHorizontal: 30, backgroundColor: '#119aa3', borderRadius: 20, textAlign: 'center', shadowColor: 'black', 
-          shadowOffset: {width: 2, height: 2}, 
-          shadowRadius: 3, 
-          shadowOpacity: 0.6}} 
+            <TouchableOpacity style={{width: '80%', alignSelf: 'center' , paddingVertical: 11, paddingHorizontal: 30, backgroundColor: '#119aa3', borderRadius: 5, textAlign: 'center'}} 
                         onPress={()=>{
                             addCash();
                             // if (authContext.userData["default_card"]===undefined){
@@ -292,6 +285,14 @@ export default function DrinklyCash({route}){
                         }}>
                     <Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', fontSize: 16}}>Add {amountIndex !== -1 ? `$${amounts[amountIndex]}` : (amount==='' || isNaN(amount) || amount === undefined ? '' : `$${amount}`)} Drinkly Cash</Text>
             </TouchableOpacity> 
+
+            <View style={{height: 100}}></View>
+
+                
+                
+            </ScrollView>
+
+                    
           
 
             

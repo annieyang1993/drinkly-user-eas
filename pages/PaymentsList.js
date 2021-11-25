@@ -13,7 +13,7 @@ export default function PaymentMethods({navigation}){
         console.log(authContext.defaultPaymentId)
         const tempBool = !authContext.drinklyCash;
         
-        await setPaymentMethod(authContext.cartSubTotal, authContext.tip, authContext.taxes, !authContext.drinklyCash);
+        await setPaymentMethod(authContext.cartSubTotal-authContext.discount, authContext.tip, authContext.taxes, !authContext.drinklyCash);
         await authContext.setDrinklyCash(!authContext.drinklyCash)
         await Firebase.firestore().collection('users').doc(`${authContext.user.uid}`).set({drinkly_bool: !authContext.drinklyCash}, {merge: true});
         // await authContext.setPaymentMethod(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < authContext.cartSubTotal || tempBool === false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId=== '' ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash')
@@ -44,7 +44,7 @@ export default function PaymentMethods({navigation}){
                 <View style={{width: '95%', alignSelf: 'center'}}>
                     <View style={{width: '100%', flexDirection: 'row'}}>
                         <Text style={{fontSize: 16, fontWeight: 'bold'}}>Drinkly Cash</Text>
-                        <TouchableOpacity style={{position: 'absolute', right: 0}} onPress={()=>navigation.navigate("Drinkly Cash")}>
+                        <TouchableOpacity style={{position: 'absolute', right: 0}} onPress={()=>{navigation.navigate("Drinkly Cash")}}>
                             <Text style={{color: 'gray'}}>+ Add Drinkly Cash</Text>
                         </TouchableOpacity>
                     </View>

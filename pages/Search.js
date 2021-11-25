@@ -1,7 +1,7 @@
 
 
 import React, { useEffect, useContext, useState } from 'react';
-import {Linking, Image, TouchableOpacity, ScrollView, SlideModal, Button, Modal, TextInput, View, Text, StyleSheet, Dimensions } from 'react-native'
+import {Linking, Image, TouchableOpacity, ScrollView, SlideModal, Button, Modal, TextInput, View, Text, StyleSheet, Dimensions, ActivityIndicator } from 'react-native'
 import {MaterialCommunityIcons} from '@expo/vector-icons';
 //import BottomSheet from 'reanimated-bottom-sheet'
 import {getDistance, getPreciseDistance} from 'geolib';
@@ -196,7 +196,7 @@ const setWeekdayAndTimeArrays = async ()=>{
 
         
 
-  }
+  } 
 
   const renderedRestaurants = async () => {
 
@@ -323,25 +323,27 @@ const setWeekdayAndTimeArrays = async ()=>{
              }
           })}
 
-          {authContext.locationSet === false && authContext.search.length === 0? 
+          {authContext.setLoadingRestaurants === true ? <ActivityIndicator size='large' style={{marginTop: 100, alignSelf: 'center'}}/> : null}
+
+          {authContext.setLoadingRestaurants === false && authContext.locationSet === false && authContext.search.length === 0? 
           <View>
           <MaterialCommunityIcons name="map-marker" size={120} color='lightgray' style={{alignSelf: 'center', marginTop: 100, opacity: 0.5}}/>
 
-          <Text style={{width: '70%', alignSelf: 'center', opacity: 0.6, textAlign: 'center', marginTop: 25, color: 'gray', fontSize: 15, fontWeight: '500'}}>This app requires location settings to search for nearby cafes. Please turn on location services to see cafes near you.</Text> 
-            <TouchableOpacity style={{marginTop: 20, alignSelf: 'center', padding: 10, paddingHorizontal: 20, backgroundColor: '#44bec6', borderRadius: 10, shadowColor: 'black', 
+          <Text style={{width: '70%', alignSelf: 'center', opacity: 0.6, textAlign: 'center', marginTop: 25, color: 'gray', fontSize: 14, fontWeight: '500'}}>This app requires location settings to search for nearby cafes. Please turn on location services to see cafes near you.</Text> 
+            <TouchableOpacity style={{marginTop: 20, alignSelf: 'center', padding: 10, paddingHorizontal: 20, backgroundColor: '#119aa3', borderRadius: 10, shadowColor: 'black', 
               shadowOffset: {width: 1, height: 1}, 
               shadowRadius: 2, 
               shadowOpacity: 0.6}} onPress={()=>Linking.openURL('app-settings:')}>
-              <Text style={{color: 'white', fontWeight: '500'}}>
+              <Text style={{color: 'white', fontWeight: 'bold'}}>
                   Settings
               </Text>
           </TouchableOpacity>
 
           </View>
           : null}
-          {authContext.locationSet === true && authContext.search.length !== 0 && numSearch === 0 ? <Text style={{width: '70%', alignSelf: 'center', opacity: 0.6, textAlign: 'center', marginTop: 100, color: 'gray', fontSize: 15, fontWeight: '500'}}>We're sorry, there are currently no cafes that match your search.</Text> : null}
-          {authContext.locationSet === true && authContext.search.length === 0 && numCafesNear === 0 ? <View>
-          <Text style={{width: '70%', alignSelf: 'center', textAlign: 'center', marginTop: 80, color: 'gray', opacity: 0.6, fontSize: 15, fontWeight: '500'}}>We're sorry, there are no cafes in your area. We are rapidly expanding our cafe selection so please check back later! In the meantime, feel free to use our search bar to see cafes currently listed on the app.</Text> 
+          {authContext.setLoadingRestaurants === false && authContext.locationSet === true && authContext.search.length !== 0 && numSearch === 0 ? <Text style={{width: '70%', alignSelf: 'center', opacity: 0.6, textAlign: 'center', marginTop: 100, color: 'gray', fontSize: 15, fontWeight: '500'}}>We're sorry, there are currently no cafes that match your search.</Text> : null}
+          {authContext.setLoadingRestaurants === false && authContext.locationSet === true && authContext.search.length === 0 && numCafesNear === 0 ? <View>
+          <Text style={{width: '70%', alignSelf: 'center', textAlign: 'center', marginTop: 80, color: 'gray', opacity: 0.6, fontSize: 15, fontWeight: '500'}}>We're sorry, there are no cafes in your area. We are rapidly expanding our cafe selection so please check back later!</Text> 
           <Image style = {{width: '50%', resizeMode: 'contain', height: 200, alignSelf: 'center', marginTop: 25, opacity: 0.2}} source={require('../assets/sadCoffeeGray.png')} />
           </View>: null}
             

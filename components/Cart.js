@@ -30,7 +30,7 @@ export default function Cart({route}){
     const tipsArray = ['No tip', '5%', '10%', '15%', '18%'];
     const [tipIndex, setTipIndex] = useState(1)
     const [tips, setTips] = useState(0)
-    const [code, setCode] = useState('')
+    const [code, setCode] = useState(authContext.discountCode)
     const [discountErrorMessage, setDiscountErrorMessage] = useState('');
 
     const getSelections=async (item, j)=>{
@@ -95,11 +95,14 @@ export default function Cart({route}){
     const handleSubmitDiscount = async (text) =>{
         var found = false;
         var index = 0;
-
+        var discountTotal = 0;
         authContext.rewardsArray.map((reward, i)=>{
             if (authContext.rewards[reward]["code"]===text && authContext.rewards[reward]["restaurant_id"]===authContext.cartRestaurant.info){
                 found = true;
                 index = i;
+                authContext.setDiscountId(authContext.rewards[reward]["id"]);
+                
+                
             }
         })
 
@@ -108,11 +111,12 @@ export default function Cart({route}){
             authContext.setDiscount(0);
             authContext.setDiscountCode('')
             authContext.setDiscountBool(false);
+            authContext.setDiscountId('');
         }
 
         else if (found === true){
             authContext.setDiscountBool(true);
-            var discountTotal = 0;
+            
             if (authContext.rewards[authContext.rewardsArray[index]]["reward_type"]==="Drink"){
                 const {cartIndex, itemprice} = await findLowestPriceIndex();
                 console.log("PRICE HERE", itemprice);
@@ -126,17 +130,6 @@ export default function Cart({route}){
                 }
             }
 
-            if ((authContext.cartSubTotal-discountTotal)<4){
-                authContext.setTaxes((authContext.cartSubTotal-discountTotal)*0.05);
-            } else{
-                authContext.setTaxes((authContext.cartSubTotal-discountTotal)*0.13);
-            }
-
-            setTip(Number(authContext.cartSubTotal)-Number(discountTotal), authContext.tipIndex);
-            if (authContext.rounded(Number(authContext.cartSubTotal-Number(discountTotal))) === 0){
-                authContext.setServiceFee(0);
-            }
-
             
             setDiscountErrorMessage('');
             authContext.setDiscountCode(text);
@@ -146,8 +139,31 @@ export default function Cart({route}){
             setDiscountErrorMessage('Code does not exist for this cafe.')
             authContext.setDiscount(0);
             authContext.setDiscountCode('')
+            authContext.setDiscountId('');
         }
+
+        var taxesTemp = 0;
+
+         if ((authContext.cartSubTotal-discountTotal)<4){
+                authContext.setTaxes((authContext.cartSubTotal-discountTotal)*0.05);
+                taxesTemp = (authContext.cartSubTotal-discountTotal)*0.05;
+            } else{
+                authContext.setTaxes((authContext.cartSubTotal-discountTotal)*0.13);
+                taxesTemp = (authContext.cartSubTotal-discountTotal)*0.13;
+        }
+
         
+        if (authContext.rounded(Number(authContext.cartSubTotal-Number(discountTotal))) === 0){
+            authContext.setServiceFee(0);
+        }
+
+        await setTip(Number(authContext.cartSubTotal)-Number(discountTotal), authContext.tipIndex).then(async (tip)=> {
+            setPaymentMethod(Number(authContext.cartSubTotal)-Number(discountTotal), tip, taxesTemp);
+        })
+
+        
+        
+        return discountTotal;
     }
 
     const findLowestPriceIndex = async () => {
@@ -175,13 +191,12 @@ export default function Cart({route}){
       } else{
         setCartTotal(authContext.rounded(authContext.cartSubTotal*1.13+0.15).toFixed(2));
       }
-      setTip(authContext.cartSubTotal-authContext.discount, authContext.tipIndex);
+      //setTip(authContext.cartSubTotal-authContext.discount, authContext.tipIndex);
     }, [])
 
     return(
         
         <View style={{backgroundColor: 'white'}}>
-            {console.log(authContext.cart)}
             {authContext.cart.length === 0 ? 
             <ScrollView showsVerticalScrollIndicator={false} style={{height: Dimensions.get("screen").height, backgroundColor: 'white'}}>
             <Text style={{marginTop: 70, alignSelf: 'center', fontWeight: 'bold', fontSize: 16}}>Your cart from</Text>
@@ -292,8 +307,9 @@ export default function Cart({route}){
             
             var cartTemp = authContext.cart.map((x)=>x);
             cartTemp.splice(i, 1)
+            await authContext.updateCart(cartTemp)
             authContext.setCartNumber(authContext.cartNumber-authContext.cart[i]["quantity"])
-            await authContext.handleSubmitDiscount(authContext.discountCode).then(async (discount)=>{
+            await authContext.handleSubmitDiscount(authContext.discountCode, cartTemp, authContext.cartSubTotal-authContext.cart[i]["quantity"]*authContext.cart[i]["total_price"]).then(async (discount)=>{
             await authContext.setCartSubTotal(authContext.cartSubTotal-authContext.cart[i]["quantity"]*authContext.cart[i]["total_price"])
             var taxesTemp = 0;
             if ((Number(authContext.cartSubTotal)-Number(authContext.cart[i]["quantity"])*Number(authContext.cart[i]["total_price"]) - Number(discount))<4){
@@ -307,16 +323,19 @@ export default function Cart({route}){
             await setTip(authContext.cartSubTotal-discount-authContext.cart[i]["quantity"]*authContext.cart[i]["total_price"], authContext.tipIndex).then(async (tip) => {
                 await setPaymentMethod(authContext.cartSubTotal-discount - authContext.cart[i]["quantity"]*authContext.cart[i]["total_price"], tip, taxesTemp);
             });
-              
+
             });
-            authContext.updateCart(cartTemp);
+              
+        
+            
+
+
             if (Object.values(cartTemp).length === 0 ){
                 authContext.setDiscount(0);
                 authContext.setDiscountCode('');
                 authContext.setDiscountBool(false);
 
                 authContext.updateCart([]);
-                authContext.updateCartRestaurant({});
                 authContext.setItemTotals([]);
                 authContext.setWeekDayArray(['Today']);
                 authContext.setDateTimeArray({});
@@ -371,10 +390,24 @@ export default function Cart({route}){
                             style={{width: '100%', height: 30}}
                             placeholder="Discount code"
                             placeholderTextColor="lightgray"
-                            defaultValue={authContext.discountCode}
-                            onSubmitEditing={({nativeEvent: {text, eventCount, target}})=>{
+                            defaultValue={code}
+                            onSubmitEditing={async ({nativeEvent: {text, eventCount, target}})=>{
                                 setCode(text);
-                                handleSubmitDiscount(text);
+                                handleSubmitDiscount(text).then(async(discount)=>{
+                                    //setPaymentMethod(authContext.cartSubTotal-discount, authContext.tip, authContext.taxes)
+                                    // var taxesTemp = 0;
+                                    // if ((Number(authContext.cartSubTotal) - Number(discount))<4){
+                                    //     await authContext.setTaxes((Number(authContext.cartSubTotal) - Number(discount))*0.05);
+                                    //     taxesTemp = (Number(authContext.cartSubTotal) - Number(discount))*0.05;
+                                    // } else{
+                                    //     await authContext.setTaxes((Number(authContext.cartSubTotal) - Number(discount))*0.13);
+                                    //     taxesTemp = (Number(authContext.cartSubTotal) - Number(discount))*0.13;
+                                    // }
+
+                                    // await setTip((Number(authContext.cartSubTotal) - Number(discount))).then(async (tip) => {
+                                    //     await setPaymentMethod((Number(authContext.cartSubTotal) - Number(discount)), tip, taxesTemp);
+                                    // });
+                                });
                             }}
                             style={{borderRadius: 2, paddingHorizontal: 5, width: '100%'}}
                             >
@@ -404,7 +437,7 @@ export default function Cart({route}){
                 <View style={{flexDirection: 'row', width: '100%', marginTop: 5, marginBottom: 10, color: 'gray'}}>
                     <Text style={{color: 'gray'}}>Subtotal</Text>
                     <MaterialCommunityIcons name="information-outline" style={{color: 'gray', marginLeft: 10}}/>
-                    <Text style={{position: 'absolute', right: 0, color: 'gray'}}>${authContext.rounded(authContext.cartSubTotal).toFixed(2)-authContext.rounded(Number(authContext.discount)).toFixed(2)}</Text>
+                    <Text style={{position: 'absolute', right: 0, color: 'gray'}}>${authContext.rounded(authContext.rounded(authContext.cartSubTotal).toFixed(2)-authContext.rounded(Number(authContext.discount)).toFixed(2)).toFixed(2)}</Text>
                 </View>
                           
                 </View>
@@ -571,7 +604,7 @@ export default function Cart({route}){
                     shadowRadius: 3, 
                     shadowOpacity: 0.8, paddingVertical: 11, paddingHorizontal: 30, backgroundColor: '#119aa3', borderRadius: 20, textAlign: 'center'}} 
         onPress={()=>checkContinue()}>
-                <Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', fontSize: 16}}>Continue (${authContext.rounded(authContext.cartSubTotal + authContext.taxes + authContext.serviceFee + authContext.tip).toFixed(2)})</Text>
+                <Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', fontSize: 16}}>Continue (${authContext.rounded(authContext.cartSubTotal - authContext.discount+ authContext.taxes + authContext.serviceFee + authContext.tip).toFixed(2)})</Text>
         </TouchableOpacity> 
         </View>
 

@@ -31,7 +31,7 @@ export default function AccountPage({navigation}){
             <ScrollView showsVerticalScrollIndicator={false} style={{backgroundColor: 'white', height: '100%', width: '95%', alignSelf: 'center'}}>
 
               <View style={{height: 100, borderBottomWidth: 1, borderBottomColor: 'lightgray', marginBottom: 50}}>
-                <TouchableOpacity style={{flexDirection: 'row', marginTop: 40}} onPress={()=>navigation.navigate("Drinkly Cash")}>
+                <TouchableOpacity style={{flexDirection: 'row', marginTop: 40}} onPress={()=>{navigation.navigate("Drinkly Cash")}}>
                   <View>
                     <Text style={{fontWeight: 'bold', fontSize: 15}}>Drinkly Cash</Text>
                     <Text style={{fontSize: 12, color: 'gray'}}>Get $0 service fees with Drinkly Cash</Text>

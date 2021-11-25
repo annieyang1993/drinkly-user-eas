@@ -69,7 +69,7 @@ export default function Checkout(){
     }
 
     const submitOrder = async () =>{
-        const total = Number(authContext.cartSubTotal) + Number(authContext.taxes) + Number(authContext.serviceFee) + Number(authContext.tip);
+        const total = Number(authContext.cartSubTotal) -Number(authContext.discount)+ Number(authContext.taxes) + Number(authContext.serviceFee) + Number(authContext.tip);
         var submitted = false;
         if (authContext.paymentMethod === 'Please select a payment method'){
             setErrorMessage('Please select a payment method before placing order.')
@@ -86,11 +86,18 @@ export default function Checkout(){
                 setErrorMessage('Insufficient funds in Drinkly Cash.');
             } else{
                 authContext.setDrinklyCashAmount(authContext.rounded(authContext.drinklyCashAmount - total));
+                const userDataTemp = authContext.userData;
+                userDataTemp["drinkly_cash"] = authContext.rounded(authContext.drinklyCashAmount - total);
+                authContext.setUserData(userDataTemp);
                 await Firebase.firestore().collection('users').doc(`${authContext.user.uid}`).set({drinkly_cash: authContext.rounded(authContext.drinklyCashAmount - total)}, {merge: true})
                 submitted = true;
             }
             
-        } else{
+        } else if (authContext.cartSubTotal <= 0.001 && authContext.tip <= 0.001 && authContext.taxes <= 0.001){
+            submitted = true;
+        }
+        
+        else{
             setErrorMessage('Unknown payment method')
         }
 
@@ -152,6 +159,8 @@ export default function Checkout(){
             created_at: new Date(),
             updated_at: new Date(),
             accepted: false,
+            discount_bool: authContext.discountBool,
+            discount: authContext.discount,
             filled: false,
             completed: false,
             canceled: false,
@@ -181,6 +190,8 @@ export default function Checkout(){
             restaurant_image: authContext.cartRestaurant.restaurant.pictures[0],
             created_at: new Date(),
             updated_at: new Date(),
+            discount_bool: authContext.discountBool,
+            discount: authContext.discount,
             accepted: false,
             filled: false,
             completed: false,
@@ -303,6 +314,7 @@ export default function Checkout(){
 
 
             ///DEALING WITH POINTS UPDATING 
+            var updateRewards = authContext.userData.rewards_collected;
             if (authContext.cartRestaurant.restaurant.rewards === true){
             if (!(authContext.pointsList[`${authContext.cartRestaurant.info}`]===undefined)){
                 if (authContext.pointsList[`${authContext.cartRestaurant.info}`]["current_points"]
@@ -325,7 +337,14 @@ export default function Checkout(){
                         restaurant_card_pic: authContext.cartRestaurant.restaurant.rewards_card_pic,
                     })
 
-                    //WRITING REWARDS!!!
+                    await Firebase.firestore().collection('users')
+                    .doc(`${authContext.user.uid}`).set({
+                        rewards_collected: authContext.userData.rewards_collected+1
+                    }, {merge: true});
+
+                    updateRewards = updateRewards + 1;
+
+                     //WRITING REWARDS!!!
                     const code = authContext.cartRestaurant.restaurant.name.slice(0,3).toUpperCase()+"REWARD"
                     const date = new Date().toLocaleDateString()+' '+new Date().toLocaleTimeString()
                     await Firebase.firestore().collection('users')
@@ -404,6 +423,39 @@ export default function Checkout(){
                         street: authContext.cartRestaurant.restaurant.street[0],
                     })
             }
+
+            if (authContext.discountBool === true){
+                await Firebase.firestore().collection('users')
+                    .doc(`${authContext.user.uid}`)
+                    .collection('rewards')
+                    .doc(authContext.discountId)
+                    .set({
+                        used: true
+                    }, {merge: true})
+                const rewardsTemp = authContext.rewards
+                delete rewardsTemp[authContext.discountId]
+                authContext.setRewards(rewardsTemp);
+                authContext.setRewardsArray(Object.keys(rewardsTemp)); 
+
+                await Firebase.firestore().collection('users')
+                    .doc(`${authContext.user.uid}`)
+                    .collection('points')
+                    // .doc('orders')
+                    // .collection(today)
+                    .doc(`${authContext.cartRestaurant.info}`)
+                    .set({
+                        rewards: authContext.pointsList[`${authContext.cartRestaurant.info}`]["rewards"]-1,
+                    }, {merge: true})
+
+
+
+            }
+
+            const userTemp = authContext.userData;
+            userTemp["order_ids"]=user_order_ids;
+            userTemp["rewards_collected"]=updateRewards;
+
+            authContext.setUserData(userTemp);
             getPoints();
         }
             // authContext.setQuickCheckoutObject(quickCheckoutTemp);
@@ -441,10 +493,7 @@ export default function Checkout(){
 
 
 
-        const userTemp = authContext.userData;
-        userTemp["order_ids"]=user_order_ids;
-
-        authContext.setUserData(userTemp);
+        
         // updateCart([]);
         // updateCartRestaurant();
         // setItemTotals([]);
@@ -543,7 +592,7 @@ export default function Checkout(){
                 // } else{
                 // }
             }}>
-                    <Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', fontSize: 16}}>Place Order (${authContext.rounded(authContext.cartSubTotal + authContext.taxes + authContext.serviceFee + authContext.tip).toFixed(2)})</Text>
+                    <Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', fontSize: 16}}>Place Order (${authContext.rounded(authContext.cartSubTotal -authContext.discount + authContext.taxes + authContext.serviceFee + authContext.tip).toFixed(2)})</Text>
             </TouchableOpacity> 
             </View>
             <TouchableOpacity

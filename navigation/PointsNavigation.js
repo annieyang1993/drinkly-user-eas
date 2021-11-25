@@ -152,7 +152,7 @@ export default function PointsNavigation({navigation}){
                         {card["rewards"] === 0 ? <View style={{height: 90}}></View> : 
                         <View style={{height: 85}}>
                             <MaterialCommunityIcons name="ticket" size={80} color={'#44bec6'} style={{alignSelf: 'center', shadowColor: '#000', marginTop: -5, shadowOpacity: 1, elevation: 5, shadowOffset: { width: 0, height: 0 }}}/>
-                            <Text style={{color: 'white', alignSelf: 'center', fontWeight: 'bold', color: 'white', shadowColor: '#000', shadowOpacity: 1, marginTop: -5, elevation: 5, shadowOffset: { width: 0, height: 0 }}}>You have a reward!</Text>
+                            <Text style={{color: 'white', alignSelf: 'center', fontWeight: 'bold', color: 'white', shadowColor: '#000', shadowOpacity: 1, marginTop: -5, elevation: 5, shadowOffset: { width: 0, height: 0 }}}>{card["rewards"] === 1 ? `You have a reward!` : `You have ${card["rewards"]} rewards!`}</Text>
                             <Text style={{color: 'white', alignSelf: 'center', width: '75%', flexWrap: 'wrap', alignSelf: 'center', textAlign: 'center', fontWeight: 'bold', color: 'white', shadowColor: '#000', fontSize: 9, shadowOpacity: 1, elevation: 5, shadowOffset: { width: 0, height: 0 }}}>Go to your homepage's "Discounts and rewards" to claim.</Text>
                         </View>}
                         <View style={{flexDirection: 'row', alignSelf: 'center', marginTop: 30, maxWidth: '90%', alignSelf: 'center', flexWrap: 'wrap'}}>
