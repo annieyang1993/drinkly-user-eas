@@ -134,7 +134,7 @@ export default function ItemModal({item, selections}){
       Object.values(itemArr).map((item,i)=>{
         modalsTemp[item["name"]] = false;
       })
-      authContext.updateCartRestaurant({info: `${route.params.restaurant["name"]}-${route.params.restaurant["street"][0]}-${route.params.restaurant["city"]}`, restaurant: route.params.restaurant, modals: modalsTemp})
+      authContext.updateCartRestaurant({info: `${route.params.restaurant["restaurant_id"]}`, restaurant: route.params.restaurant, modals: modalsTemp})
       setModalVisibles()
       authContext.setCartRestaurantItems(itemArr);
       authContext.setCartRestaurantHours(route.params.times)

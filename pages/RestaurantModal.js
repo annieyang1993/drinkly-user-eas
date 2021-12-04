@@ -26,7 +26,7 @@ function RestaurantPage({route}){
   }, [])
 
   const getItems=async()=>{
-    const items = await Firebase.firestore().collection('restaurants').doc(`${route.params.restaurant["name"]}-${route.params.restaurant["street"][0]}-${route.params.restaurant["city"]}`).collection("items").get()
+    const items = await Firebase.firestore().collection('restaurants').doc(`${route.params.restaurant["restaurant_id"]}`).collection("items").get()
     items.docs.map((item,i)=>{
       const tempItems = itemArr;
       tempItems[item.data().name] = item.data();
@@ -40,7 +40,7 @@ function RestaurantPage({route}){
     const selectionsTemp = {};
     await Firebase.firestore()
     .collection('restaurants')
-    .doc(`${route.params.restaurant["name"]}-${route.params.restaurant["street"][0]}-${route.params.restaurant["city"]}`)
+    .doc(`${route.params.restaurant["restaurant_id"]}`)
     .collection('items')
     .doc(item).collection('add-ons').get().then(async (addons)=>{
       await addons.docs.map((addon, i)=>{
@@ -296,8 +296,7 @@ function ItemModal({item, selections}){
           await authContext.setTaxes((Number(preferenceSelections["quantity"])*Number(itemTotal))*0.13);
           taxesTemp = ((Number(preferenceSelections["quantity"]*itemTotal))*0.13)
         }
-        await authContext.updateCartRestaurant({info: `${route.params.restaurant["name"]}-${route.params.restaurant["street"][0]}-${route.params.restaurant["city"]}`, restaurant: route.params.restaurant, modals: modalsTemp})
-        console.log({info: `${route.params.restaurant["name"]}-${route.params.restaurant["street"][0]}-${route.params.restaurant["city"]}`, restaurant: route.params.restaurant, modals: modalsTemp})
+        await authContext.updateCartRestaurant({info: `${route.params.restaurant["restaurant_id"]}`, restaurant: route.params.restaurant, modals: modalsTemp})
         
         await authContext.setCartRestaurantItems(itemArr);
         await authContext.setCartRestaurantHours(route.params.times)
@@ -390,7 +389,7 @@ function ItemModal({item, selections}){
       Object.values(itemArr).map((item,i)=>{
         modalsTemp[item["name"]] = false;
       })
-      await authContext.updateCartRestaurant({info: `${route.params.restaurant["name"]}-${route.params.restaurant["street"][0]}-${route.params.restaurant["city"]}`, restaurant: route.params.restaurant, modals: modalsTemp})
+      
       setModalVisibles()
       await authContext.setCartRestaurantItems(itemArr);
       await authContext.setCartRestaurantHours(route.params.times)
@@ -802,30 +801,35 @@ function ItemModal({item, selections}){
           
           onPress={()=>{
 
+            var modalsTemp = {}
+            Object.values(itemArr).map((item,i)=>{
+              modalsTemp[item["name"]] = false;
+            })
             authContext.updateCart([]);
-            authContext.updateCartRestaurant({});
+            authContext.updateCartRestaurant({info: `${route.params.restaurant["restaurant_id"]}`, restaurant: route.params.restaurant, modals: modalsTemp})
+            authContext.setDiscount(0);
+            authContext.setDiscountCode('');
+            authContext.setDiscountBool(false);
+
+            authContext.setItemTotals([]);
+            authContext.setWeekDayArray(['Today']);
+            authContext.setDateTimeArray({});
+            authContext.setCartRestaurantHours({});
+            authContext.setBeforeOpen(false);
+            authContext.setAfterClose(false);
+            authContext.setCartSubTotal(0);
+            authContext.setTaxes(0);
+            authContext.setServiceFee(0);
+            authContext.setDayIndex(0);
+            authContext.setTimeIndex(0);
+            authContext.setTip(0);
+            authContext.setDiscountCode('');
+            authContext.setTipIndex(1);
+
             handleAddCartNew();
             setModalVisibles();
             setDiffRestaurantCartPrompt(false);
-            authContext.setDiscount(0);
-                authContext.setDiscountCode('');
-                authContext.setDiscountBool(false);
 
-                authContext.updateCart([]);
-                authContext.setItemTotals([]);
-                authContext.setWeekDayArray(['Today']);
-                authContext.setDateTimeArray({});
-                authContext.setCartRestaurantHours({});
-                authContext.setBeforeOpen(false);
-                authContext.setAfterClose(false);
-                authContext.setCartSubTotal(0);
-                authContext.setTaxes(0);
-                authContext.setServiceFee(0);
-                authContext.setDayIndex(0);
-                authContext.setTimeIndex(0);
-                authContext.setTip(0);
-                authContext.setDiscountCode('');
-            authContext.setTipIndex(1);
             
             }}><View style={{marginHorizontal: 10, padding: 5, backgroundColor: '#119aa3', borderRadius: 5, paddingHorizontal: 10}}><Text style={{color: 'white', fontWeight: 'bold'}}>Yes</Text></View></TouchableOpacity>
           <TouchableOpacity onPress={()=>{setDiffRestaurantCartPrompt(false)}}><View style={{marginHorizontal: 10, padding: 5, backgroundColor: '#119aa3', borderRadius: 5, paddingHorizontal: 10}}><Text style={{color: 'white', fontWeight: 'bold'}}>No</Text></View></TouchableOpacity>

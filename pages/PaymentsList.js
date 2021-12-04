@@ -106,7 +106,8 @@ export default function PaymentMethods({navigation}){
             <TouchableOpacity
                 style={{
                 }}
-                onPress={() => {
+                onPress={async () => {
+                    await setPaymentMethod(authContext.cartSubTotal, authContext.tip, authContext.taxes, authContext.drinklyCash);
                     navigation.pop(1)
                 }}>
                 <MaterialCommunityIcons name="arrow-left" size={22}/>

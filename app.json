@@ -2,7 +2,7 @@
   "expo": {
     "name": "drinkly-user-eas",
     "slug": "DrinklyApp",
-    "version": "1.1.5",
+    "version": "1.1.8",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -27,7 +27,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "package": "com.annieyang1.drinklyusereas"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -36,7 +37,9 @@
       [
         "@stripe/stripe-react-native",
         {
-          "merchantIdentifier": ["merchant.com.drinklyinc"],
+          "merchantIdentifier": [
+            "merchant.com.drinklyinc"
+          ],
           "enableGooglePay": false
         }
       ]

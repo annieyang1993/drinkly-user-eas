@@ -75,6 +75,19 @@ export default function Payments(){
 
 
     //Create setup intent on backend and returns the client secret to use within confirmSetupIntent
+
+    const setPaymentMethod = async (subtotal, tip, taxes, bool) =>{
+        const paymentMethodTemp = authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || bool=== false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId === '' ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash';
+        await authContext.setPaymentMethod(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || bool=== false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId === ''? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash')
+        await authContext.setIcon(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || bool=== false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId === ''? '' : 'credit-card') : 'cash')
+        if (paymentMethodTemp === 'Drinkly Cash'){
+        await authContext.setServiceFee(0);
+        } else{
+        await authContext.setServiceFee(0.15);
+        }
+
+    }
+
     const getClientSecret = async () => {
         await setLoading(true);
         setErrorBool(false);
@@ -140,6 +153,8 @@ export default function Payments(){
             navigation.pop(1);
            
         }
+
+        
          
     }
 

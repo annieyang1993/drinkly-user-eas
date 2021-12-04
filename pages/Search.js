@@ -164,7 +164,7 @@ const setWeekdayAndTimeArrays = async ()=>{
   }
 
   const getItems=async(ele)=>{
-    const items = await Firebase.firestore().collection('restaurants').doc(`${String(ele["name"])}-${String(ele["street"][0])}-${String(ele["city"])}`).collection("items").get()
+    const items = await Firebase.firestore().collection('restaurants').doc(`${String(ele["restaurant_id"])}`).collection("items").get()
     var tempItems = {}
     var modals = {}
     items.docs.map((item,i)=>{
@@ -172,7 +172,7 @@ const setWeekdayAndTimeArrays = async ()=>{
       modals[item.data().name] = false;
     })
 
-    const times = await Firebase.firestore().collection('restaurants').doc(`${String(ele["name"])}-${String(ele["street"][0])}-${String(ele["city"])}`).collection("operating hours").get()
+    const times = await Firebase.firestore().collection('restaurants').doc(`${String(ele["restaurant_id"])}`).collection("operating hours").get()
     var tempTimes = {};
     times.docs.map((day, i)=>{
       tempTimes[day.id]=day.data();
@@ -344,7 +344,7 @@ const setWeekdayAndTimeArrays = async ()=>{
           {authContext.locationSet === true && authContext.search.length !== 0 && numSearch === 0 ? <Text style={{width: '70%', alignSelf: 'center', opacity: 0.6, textAlign: 'center', marginTop: 100, color: 'gray', fontSize: 15, fontWeight: '500'}}>We're sorry, there are currently no cafes that match your search.</Text> : null}
           {authContext.locationSet === true && authContext.search.length === 0 && numCafesNear === 0 ? <View>
           <Image style = {{width: '50%', resizeMode: 'contain', height: 200, alignSelf: 'center', marginTop: 100, opacity: 0.15}} source={require('../assets/sadCoffeeBlue2.png')} />
-          <Text style={{width: '50%', alignSelf: 'center', textAlign: 'center', marginTop: 10, color: '#119aa3', opacity: 0.4, fontSize: 15, fontWeight: '500'}}>We're sorry, there are no cafes in your area.</Text> 
+          <Text style={{width: '50%', alignSelf: 'center', textAlign: 'center', marginTop: 10, color: '#119aa3', opacity: 0.3, fontSize: 15, fontWeight: '500'}}>We're sorry, there are no cafes in your area.</Text> 
           </View>: null}
             
       

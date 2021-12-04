@@ -39,12 +39,12 @@ function RestaurantPage({route}){
   }
 
   const getItems=async()=>{
-    const items = await Firebase.firestore().collection('restaurants').doc(`${route.params.restaurant["name"]}-${route.params.restaurant["street"][0]}-${route.params.restaurant["city"]}`).collection("items").get()
+    const items = await Firebase.firestore().collection('restaurants').doc(`${route.params.restaurant["restaurant_id"]}`).collection("items").get()
     items.docs.map((item,i)=>{
       const tempItems = itemArr;
       tempItems[item.data().name] = item.data();
       setItemArr(tempItems);
-    })
+    }) 
 
   }
 
@@ -53,7 +53,7 @@ function RestaurantPage({route}){
     const selectionsTemp = {};
     await Firebase.firestore()
     .collection('restaurants')
-    .doc(`${route.params.restaurant["name"]}-${route.params.restaurant["street"][0]}-${route.params.restaurant["city"]}`)
+    .doc(`${route.params.restaurant["restaurant_id"]}`)
     .collection('items')
     .doc(item).collection('add-ons').get().then(async (addons)=>{
       await addons.docs.map((addon, i)=>{
@@ -323,13 +323,13 @@ const setTip = async (subtotal)=>{
       await setTip((Number(preferenceSelections["quantity"]*itemTotal))).then(async (tip) => {
         await setPaymentMethod((Number(preferenceSelections["quantity"]*itemTotal)), tip, taxesTemp);
       });
-      authContext.updateCartRestaurant({info: `${route.params.restaurant["name"]}-${route.params.restaurant["street"][0]}-${route.params.restaurant["city"]}`, restaurant: route.params.restaurant, modals: modalsTemp})
+      authContext.updateCartRestaurant({info: `${route.params.restaurant["restaurant_id"]}`, restaurant: route.params.restaurant, modals: modalsTemp})
       setModalVisibles()
       authContext.setCartRestaurantItems(itemArr);
       authContext.setCartRestaurantHours(route.params.times)
       authContext.setCartNumber(preferenceSelections["quantity"])
       const discountsFirebase = await Firebase.firestore().collection('restaurants')
-      .doc(`${route.params.restaurant["name"]}-${route.params.restaurant["street"][0]}-${route.params.restaurant["city"]}`)
+      .doc(`${route.params.restaurant["restaurant_id"]}`)
       .collection('discounts').get()
       discountsTemp = {}
       discountsFirebase.docs.map((discount, n)=>{
@@ -340,7 +340,7 @@ const setTip = async (subtotal)=>{
       authContext.setDiscounts(discountsTemp);
       // navigation.navigate("Search2", {screen: route.params.restaurant["name"], params: {restaurant: route.params.restaurant, itemsArr: itemArr, modals: modalsTemp}})
     } else{
-      if (authContext.cartRestaurant["info"]===`${route.params.restaurant["name"]}-${route.params.restaurant["street"][0]}-${route.params.restaurant["city"]}`){
+      if (authContext.cartRestaurant["info"]===`${route.params.restaurant["restaurant_id"]}`){
         //handle if it's the same restaurant
         var added = false;
         const cartTemp = authContext.cart.map((x)=>x);
@@ -403,7 +403,7 @@ const setTip = async (subtotal)=>{
       Object.values(itemArr).map((item,i)=>{
         modalsTemp[item["name"]] = false;
       })
-      authContext.updateCartRestaurant({info: `${route.params.restaurant["name"]}-${route.params.restaurant["street"][0]}-${route.params.restaurant["city"]}`, restaurant: route.params.restaurant, modals: modalsTemp})
+      authContext.updateCartRestaurant({info: `${route.params.restaurant["restaurant_id"]}`, restaurant: route.params.restaurant, modals: modalsTemp})
       setModalVisibles()
       authContext.setCartRestaurantItems(itemArr);
       authContext.setCartRestaurantHours(route.params.times)

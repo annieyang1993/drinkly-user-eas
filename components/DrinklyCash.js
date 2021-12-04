@@ -38,9 +38,9 @@ export default function DrinklyCash({route}){
     const toggleSwitch = async () => {
         const tempBool = !authContext.drinklyCash;
         
-        await setPaymentMethod(authContext.cartSubTotal-authContext.discount, authContext.tip, authContext.taxes, !authContext.drinklyCash);
+        await setPaymentMethod(authContext.cartSubTotal-authContext.discount, authContext.tip, authContext.taxes, !authContext.drinklyCash, authContext.drinklyCashAmount);
         await authContext.setDrinklyCash(!authContext.drinklyCash)
-        await Firebase.firestore().collection('users').doc(`${cred.user.uid}`).set({drinkly_bool: !authContext.drinklyCash}, {merge: true});
+        await Firebase.firestore().collection('users').doc(`${authContext.user.uid}`).set({drinkly_bool: !authContext.drinklyCash}, {merge: true});
         // await authContext.setPaymentMethod(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < authContext.cartSubTotal || tempBool === false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId=== '' ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash')
         // await authContext.setIcon(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (authContext.cartSubTotal) || tempBool === false ? (authContext.defaultPaymentId === undefined || authContext.defaultPaymentId=== '' ? '' : 'credit-card') : 'cash')
         // if (tempBool === true){
@@ -50,11 +50,10 @@ export default function DrinklyCash({route}){
         // }
     }
 
-    const setPaymentMethod = async (subtotal, tip, taxes, bool) =>{
-        console.log("FIGURING THIS OUT", authContext.defaultPaymentId)
-        const paymentMethodTemp = authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || bool === false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId === '' ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash';
-        await authContext.setPaymentMethod(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || bool === false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId === ''? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash')
-        await authContext.setIcon(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || bool === false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId === ''? '' : 'credit-card') : 'cash')
+    const setPaymentMethod = async (subtotal, tip, taxes, bool, drinklyCashAmountTemp) =>{
+        const paymentMethodTemp = drinklyCashAmountTemp===undefined || drinklyCashAmountTemp < (subtotal + tip + taxes) || bool === false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId === '' ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash';
+        await authContext.setPaymentMethod(drinklyCashAmountTemp===undefined || drinklyCashAmountTemp < (subtotal + tip + taxes) || bool === false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId === ''? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash')
+        await authContext.setIcon(drinklyCashAmountTemp===undefined || drinklyCashAmountTemp < (subtotal + tip + taxes) || bool === false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId === ''? '' : 'credit-card') : 'cash')
         if (paymentMethodTemp === 'Drinkly Cash'){
         await authContext.setServiceFee(0);
         } else{
@@ -73,7 +72,7 @@ export default function DrinklyCash({route}){
                 setErrorMessage(`Please enter an amount less than $1000.`);
                 return
             }
-            else{
+            else{check
                 setErrorMessage(``);
             }
         }
@@ -94,6 +93,14 @@ export default function DrinklyCash({route}){
             authContext.setDrinklyCashAmount(sum);
             await authContext.setUserData(userDataTemp);
         }
+        const drinklyCashTemp = authContext.userData.drinkly_cash === null || authContext.userData.drinkly_cash === undefined ? 0 : Number(authContext.userData.drinkly_cash);
+        const addition = authContext.rounded(amountIndex === -1 ? Number(amount) : Number(amounts[amountIndex]));
+        const sum = drinklyCashTemp + addition;
+
+        //await setPaymentMethod(authContext.cartSubTotal, authContext.tip, authContext.taxes, authContext.drinklyCash, authContext.rounded(sum).toFixed(2))
+
+
+
         await setAddingCash(false);
         await setAddingCashState(2);
         await new Promise(res => setTimeout(res, 1000))

@@ -433,6 +433,29 @@ export default function HomeStack(){
         //     rewards_card_pic: 'https://s3-media0.fl.yelpcdn.com/bphoto/Gcra-6PJtd6nXPIi4ubmmQ/o.jpg'
         // })
 
+        // Firebase.firestore().collection('restaurants').doc('Baroness-421 Yonge St.-Toronto').set({
+        //     city: 'Toronto',
+        //     country: 'Canada',
+        //     description: 'More than just another bubble tea shop, Baroness is all about sharing stories.',
+        //     email: 'baroness@gmail.com',
+        //     latitude: 43.6601162,
+        //     longitude: -79.384602,
+        //     name: 'Baroness',
+        //     phone: '000',
+        //     pictures: ['https://www.baronesscanada.com/wp-content/uploads/2020/01/Photo-2020-01-12-2-49-05-PM-scaled-800x545.jpg', 'https://www.baronesscanada.com/wp-content/uploads/2020/01/rsz_photo_2020-01-12_2_10_53_pm.jpg'],
+        //     price_level: 2,
+        //     //sections: ['Espresso Drinks', 'Drip Coffee & Tea', 'Iced Drinks', 'Breakfast Cups'],
+        //     state: 'Ontario',
+        //     street: ['421 Yonge St'],
+        //     restaurant_id: 'Baroness-421 Yonge St.-Toronto',
+        //     max_points: 10,
+        //     max_reward_cost: 10,
+        //     points_per_purchase: 1,
+        //     preward_type: 'Drink',
+        //     rewards: true,
+        //     rewards_card_pic: 'https://www.baronesscanada.com/wp-content/uploads/2020/01/Photo-2020-01-12-2-49-05-PM-scaled-800x545.jpg'
+        // })
+
         // Firebase.firestore().collection('cafes').doc('cafes').collection('Toronto, Canada').doc('Fahrenheit Coffee-120 Lombard St-Toronto').set({
         //     city: 'Toronto',
         //     country: 'Canada',
@@ -460,49 +483,49 @@ export default function HomeStack(){
         // console.log(isThere.docs)
 
         // Firebase.firestore()
-        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('restaurants')
+        // .doc('Baroness-421 Yonge St.-Toronto')
         // .collection('operating hours')
         // .doc('Monday').set({open: '6:30 am', close: '6:30 pm'})
 
         // Firebase.firestore()
-        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('restaurants')
+        // .doc('Baroness-421 Yonge St.-Toronto')
         // .collection('operating hours')
         // .doc('Tuesday').set({open: '6:30 am', close: '6:30 pm'})
 
         // Firebase.firestore()
-        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('restaurants')
+        // .doc('Baroness-421 Yonge St.-Toronto')
         // .collection('operating hours')
         // .doc('Wednesday').set({open: '6:30 am', close: '6:30 pm'})
 
         // Firebase.firestore()
-        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('restaurants')
+        // .doc('Baroness-421 Yonge St.-Toronto')
         // .collection('operating hours')
         // .doc('Thursday').set({open: '6:30 am', close: '6:30 pm'})
 
         // Firebase.firestore()
-        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('restaurants')
+        // .doc('Baroness-421 Yonge St.-Toronto')
         // .collection('operating hours')
         // .doc('Friday').set({open: '6:30 am', close: '6:30 pm'})
 
         // Firebase.firestore()
-        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('restaurants')
+        // .doc('Baroness-421 Yonge St.-Toronto')
         // .collection('operating hours')
         // .doc('Saturday').set({open: '8:30 am', close: '6:30 pm'})
 
         // Firebase.firestore()
-        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
-        // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
+        // .collection('restaurants')
+        // .doc('Baroness-421 Yonge St.-Toronto')
         // .collection('operating hours')
         // .doc('Sunday').set({open: '8:30 am', close: '6:30 pm'})
 
         // Firebase.firestore()
-        // .collection('cafes').doc('cafes').collection('Toronto, Canada')
+        // .collection('restaurants')
         // .doc('Dineen Coffee Co.-140 Yonge St-Toronto')
         // .collection('items')
         // .doc('Americano')

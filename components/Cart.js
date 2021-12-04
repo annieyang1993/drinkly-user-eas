@@ -38,7 +38,7 @@ export default function Cart({route}){
         const selectionsTemp = {};
         await Firebase.firestore()
           .collection('restaurants')
-          .doc(`${authContext.cartRestaurant.restaurant["name"]}-${authContext.cartRestaurant.restaurant["street"][0]}-${authContext.cartRestaurant.restaurant["city"]}`)
+          .doc(`${authContext.cartRestaurant.restaurant["restaurant_id"]}`)
           .collection('items')
           .doc(item["name"]).collection('add-ons').get().then(async (addons)=>{
           await addons.docs.map((addon, i)=>{
@@ -119,8 +119,6 @@ export default function Cart({route}){
             
             if (authContext.rewards[authContext.rewardsArray[index]]["reward_type"]==="Drink"){
                 const {cartIndex, itemprice} = await findLowestPriceIndex();
-                console.log("PRICE HERE", itemprice);
-                console.log(Number(itemprice)<Number(authContext.rewards[authContext.rewardsArray[index]]["max_reward_cost"]))
                 if (Number(itemprice)<Number(authContext.rewards[authContext.rewardsArray[index]]["max_reward_cost"])){
                     authContext.setDiscount(itemprice);
                     discountTotal = itemprice;

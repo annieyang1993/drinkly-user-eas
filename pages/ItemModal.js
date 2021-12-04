@@ -79,9 +79,6 @@ export default function ItemModal({item, selections, preferences, itemQuantity, 
       await authContext.setServiceFee(0.15);
     }
 
-    console.log(authContext.drinklyCashAmount);
-    console.log(subtotal + tip + taxes)
-    console.log(paymentMethodTemp)
 
   }
 

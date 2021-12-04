@@ -59,11 +59,12 @@ export default function Checkout(){
                 amount: amount,
                 payment_id: authContext.userData.default_payment_id
             })
-        }).then(async(response)=>{
-            response.json().then(async(responseJson)=>{
-                return(responseJson.id)
-            })
         })
+        // .then(async(response)=>{
+        //     response.json().then(async(responseJson)=>{
+        //         return(responseJson.id)
+        //     })
+        // })
         // const responseJson = await response.json();
         // //console.log(useConfirmPayment(JSON.stringify(responseJson)))
         // console.log(responseJson);
@@ -77,11 +78,8 @@ export default function Checkout(){
             setErrorMessage('Please select a payment method before placing order.')
         } else if (authContext.paymentMethod === 'Credit card'){
             setErrorMessage('');
-            await createCharge(authContext.rounded(authContext.rounded(total).toFixed(2)*100).toFixed(0)).then(async (id)=>{
-                const {success} = await confirmPayment(id)
-                console.log(success);
-                submitted = true;
-            });
+            await createCharge(authContext.rounded(authContext.rounded(total).toFixed(2)*100).toFixed(0));
+            submitted=true;
 
         } else if (authContext.paymentMethod === 'Drinkly Cash'){
             if ((total) > authContext.drinklyCashAmount){
@@ -206,11 +204,15 @@ export default function Checkout(){
             payment_method: authContext.paymentMethod
         }).then(async()=>{
         authContext.cart.map(async (cartItem, i)=>{
+            console.log(cartItem);
             Firebase.firestore().collection('restaurants').doc(`${authContext.cartRestaurant.info}`).collection(`orders`).doc(`${order_id}`).collection('items').doc(`${i}`).set({
                 name: cartItem.name,
                 description: (cartItem.details.description ? cartItem.details.description : ''),
                 price: cartItem.details.price,
-                img: (cartItem.details.img ? cartItem.details.img : '')
+                img: (cartItem.details.img ? cartItem.details.img : ''),
+                quantity: cartItem.quantity,
+                total_price: cartItem.total_price,
+                item_id: i
             }).then(async ()=>{ 
                 if (cartItem["preference_selections"]!==undefined){
                     Object.keys(cartItem["preference_selections"]).map(async (preference, j) =>{
@@ -220,13 +222,15 @@ export default function Checkout(){
                                 name: cartItem["preference_selections"][preference].name,
                                 price: cartItem["preference_selections"][preference].price,
                                 quantity: cartItem["preference_selections"][preference].quantity,
-                                required: cartItem["preference_selections"][preference].required
+                                required: cartItem["preference_selections"][preference].required,
+                                addon_id: preference
                             })
 
                         } else{
                             await Firebase.firestore().collection('restaurants').doc(`${authContext.cartRestaurant.info}`).collection(`orders`).doc(`${order_id}`).collection('items').doc(`${i}`).collection('add-ons').doc(`${preference}`).set({
                                 name: "special_instructions",
-                                instructions: cartItem["preference_selections"][preference]
+                                instructions: cartItem["preference_selections"][preference],
+                                addon_id: preference
                             })
                         }
                         
