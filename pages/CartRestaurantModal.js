@@ -14,7 +14,7 @@ const auth = Firebase.auth();
 function RestaurantPage({route}){
   const authContext = useContext(AuthContext);
   const [itemArr, setItemArr] = useState(route.params.itemsArr);
-  const [modals, setModals] = useState(Object.values(route.params.modals));
+  const [modal, setModal] = useState(false);
   const [selections, setSelections] = useState({})
   const date = new Date()
   const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -67,25 +67,12 @@ function RestaurantPage({route}){
     }
 
   const setModalVisibles = () => {
-      const arr = [];
-      Object.values(itemArr).map((ele, i)=>{
-          arr.push(false);
-      })
-      setModals(arr);
+      setModal(false);
       
   }
 
   const setModalAtI = (a)=>{
-      const arr = [];
-      Object.values(itemArr).map((ele, i)=>{
-          if (i===a){
-              arr.push(true);
-          } else{
-              arr.push(false);
-          }
-          
-      })
-      setModals(arr);
+      setModal(true)
   }
 
   const updateModals=(name, bool)=>{
@@ -303,9 +290,6 @@ const setTip = async (subtotal)=>{
       cartTemp.push(index);
       await authContext.updateCart(cartTemp);
       var modalsTemp = {}
-      Object.values(itemArr).map((item,i)=>{
-        modalsTemp[item["name"]] = false;
-      })
       await authContext.setCartSubTotal((preferenceSelections["quantity"]*itemTotal))
         
       var taxesTemp = 0;
@@ -321,7 +305,7 @@ const setTip = async (subtotal)=>{
         taxesTemp = ((Number(preferenceSelections["quantity"]*itemTotal))*0.13);
       }
       await setTip((Number(preferenceSelections["quantity"]*itemTotal))).then(async (tip) => {
-        await setPaymentMethod((Number(preferenceSelections["quantity"]*itemTotal)), tip, taxesTemp);
+        await authContext.updatePaymentMethod((Number(preferenceSelections["quantity"]*itemTotal)), tip, taxesTemp, authContext.drinklyCash, authContext.drinklyCashAmount, 0);
       });
       authContext.updateCartRestaurant({info: `${route.params.restaurant["restaurant_id"]}`, restaurant: route.params.restaurant, modals: modalsTemp})
       setModalVisibles()
@@ -371,7 +355,7 @@ const setTip = async (subtotal)=>{
           taxesTemp = (Number(authContext.cartSubTotal) - Number(discount) +(Number(preferenceSelections["quantity"])*Number(itemTotal)))*0.13;
         }
         await setTip(Number(authContext.cartSubTotal) - Number(discount) +(Number(preferenceSelections["quantity"])*Number(itemTotal))).then(async (tip) => {
-        await setPaymentMethod((Number(authContext.cartSubTotal) - Number(discount) +(Number(preferenceSelections["quantity"])*Number(itemTotal))), tip, taxesTemp);
+        await authContext.updatePaymentMethod((Number(authContext.cartSubTotal) +(Number(preferenceSelections["quantity"])*Number(itemTotal))), tip, taxesTemp, authContext.drinklyCash, authContext.drinklyCashAmount, Number(discount));
         });
         });
         setModalVisibles()
@@ -381,9 +365,6 @@ const setTip = async (subtotal)=>{
         //setModalVisibles()
       }
        var modalsTemp = {}
-      Object.values(itemArr).map((item,i)=>{
-        modalsTemp[item["name"]] = false;
-      })
       // navigation.navigate("Search2", {screen: route.params.restaurant["name"], params: {restaurant: route.params.restaurant, itemsArr: itemArr, modals: modalsTemp}})
     }
     
@@ -400,9 +381,6 @@ const setTip = async (subtotal)=>{
       cartTemp.push(index);
       await authContext.updateCart(cartTemp);
       var modalsTemp = {}
-      Object.values(itemArr).map((item,i)=>{
-        modalsTemp[item["name"]] = false;
-      })
       authContext.updateCartRestaurant({info: `${route.params.restaurant["restaurant_id"]}`, restaurant: route.params.restaurant, modals: modalsTemp})
       setModalVisibles()
       authContext.setCartRestaurantItems(itemArr);
@@ -421,7 +399,7 @@ const setTip = async (subtotal)=>{
         taxesTemp = ((Number(preferenceSelections["quantity"])*Number(itemTotal))*0.13);
       }
       await setTip(Number(preferenceSelections["quantity"])*Number(itemTotal)).then(async (tip) => {
-        await setPaymentMethod((Number(preferenceSelections["quantity"])*Number(itemTotal)), tip, taxesTemp);
+        await authContext.updatePaymentMethod((Number(preferenceSelections["quantity"])*Number(itemTotal)), tip, taxesTemp, authContext.drinklyCash, authContext.drinklyCashAmount, 0);
         });
       // navigation.navigate("Search2", {screen: route.params.restaurant["name"], params: {restaurant: route.params.restaurant, itemsArr: itemArr, modals: modalsTemp}})
     
@@ -862,7 +840,7 @@ const setTip = async (subtotal)=>{
                   <Modal
                         animationType="slide"
                         transparent={true}
-                        visible={modals[i]}
+                        visible={modal}
                         onRequestClose={() => {
                             // this.closeButtonFunction()
                         }}>

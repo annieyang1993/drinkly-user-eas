@@ -40,7 +40,7 @@ export default function Orders({navigation}){
                                 <Text style = {{alignSelf: 'flex-end', fontWeight: 'bold', position: 'absolute', right: 10, color: 'gray'}}>Active</Text>
                             </View>
                             <View style={{flexDirection: 'row'}}>
-                                <Text>${authContext.rounded(order["subtotal"]).toFixed(2)}</Text>
+                                <Text>${(authContext.rounded((order["subtotal"]))-authContext.rounded(Number(order["discount"])).toFixed(2)+authContext.rounded(order["tip"])+authContext.rounded(order["taxes"])+authContext.rounded(Number(order["service_fee"]) + Number(order["extraStripeCharge"]))).toFixed(2)}</Text>
                                 {order["number_of_items"]===1 ? 
                                 <Text> - {order["number_of_items"]} item</Text> : <Text> - {order["number_of_items"]} items</Text>}
                             </View>
@@ -51,14 +51,18 @@ export default function Orders({navigation}){
                         </View>
                     </TouchableOpacity>) 
                 } else if (order["filled"]===undefined || order["filled"]===false){
-                    return(<TouchableOpacity key={i} onPress={()=>navigation.navigate("Order Page", {order: order})}>
+                    return(<TouchableOpacity key={i} onPress={async ()=>{
+                        const items_list = await getOrder(order);
+                        navigation.navigate("Order Page", {order: order, items_list: items_list, status: 'Waiting to be filled'})}}>
                         <View style={{backgroundColor: '#dff8dd', padding: 10, height: 90, marginVertical: 5, width: Dimensions.get("screen").width*0.93, alignSelf: 'center', borderRadius: 10, shadowColor: 'gray', shadowOffset: {width: 2, height: 2}, shadowRadius: 5, shadowOpacity: 1,}}>
                             <View style={{flexDirection: 'row', width: '100%'}}>
                                 <Text style={{fontWeight: 'bold'}}>{order["restaurant_name"]}</Text>
                                 <Text style = {{alignSelf: 'flex-end', fontWeight: 'bold', position: 'absolute', right: 10, color: 'gray'}}>Active</Text>
                             </View>
                             <View style={{flexDirection: 'row'}}>
-                                <Text>${authContext.rounded(order["subtotal"]).toFixed(2)}</Text>
+                                <Text>${(authContext.rounded((order["subtotal"]))-authContext.rounded(Number(order["discount"])).toFixed(2)+authContext.rounded(order["tip"])+authContext.rounded(order["taxes"])+authContext.rounded(Number(order["service_fee"]) + Number(order["extraStripeCharge"]))).toFixed(2)}</Text>
+                                {order["number_of_items"]===1 ? 
+                                <Text> - {order["number_of_items"]} item</Text> : <Text> - {order["number_of_items"]} items</Text>}
                             </View>
                             <View style={{flexDirection: 'row', marginTop: 15}}>
                                 <Text>{monthList[new Date(order["created_at"]["seconds"]*1000).getMonth()]} {new Date(order["created_at"]["seconds"]*1000).getDate()}</Text>
@@ -67,14 +71,18 @@ export default function Orders({navigation}){
                         </View>
                     </TouchableOpacity>) 
                 } else if (order["completed"]===undefined || order["completed"]===false){
-                    return(<TouchableOpacity key={i} onPress={()=>navigation.navigate("Order Page", {order: order})}>
+                    return(<TouchableOpacity key={i} onPress={async ()=>{
+                        const items_list = await getOrder(order);
+                        navigation.navigate("Order Page", {order: order, items_list: items_list, status: 'Waiting to be picked up'})}}>
                         <View style={{backgroundColor: '#dff8dd', padding: 10, height: 90, marginVertical: 5, width: Dimensions.get("screen").width*0.93, alignSelf: 'center', borderRadius: 10, shadowColor: 'gray', shadowOffset: {width: 2, height: 2}, shadowRadius: 5, shadowOpacity: 1,}}>
                             <View style={{flexDirection: 'row', width: '100%'}}>
                                 <Text style={{fontWeight: 'bold'}}>{order["restaurant_name"]}</Text>
                                 <Text style = {{alignSelf: 'flex-end', fontWeight: 'bold', position: 'absolute', right: 10, color: 'gray'}}>Active</Text>
                             </View>
                             <View style={{flexDirection: 'row'}}>
-                                <Text>${authContext.rounded(order["subtotal"]).toFixed(2)}</Text>
+                                <Text>${(authContext.rounded((order["subtotal"]))-authContext.rounded(Number(order["discount"])).toFixed(2)+authContext.rounded(order["tip"])+authContext.rounded(order["taxes"])+authContext.rounded(Number(order["service_fee"]) + Number(order["extraStripeCharge"]))).toFixed(2)}</Text>
+                                {order["number_of_items"]===1 ? 
+                                <Text> - {order["number_of_items"]} item</Text> : <Text> - {order["number_of_items"]} items</Text>}
                             </View>
                             <View style={{flexDirection: 'row', marginTop: 15}}>
                                 <Text>{monthList[new Date(order["created_at"]["seconds"]*1000).getMonth()]} {new Date(order["created_at"]["seconds"]*1000).getDate()}</Text>
@@ -84,11 +92,17 @@ export default function Orders({navigation}){
                     </TouchableOpacity>) 
  
                 } else{
-                    return(<TouchableOpacity key={i} onPress={()=>navigation.navigate("Order Page", {order: order})}>
-                        <View style={{backgroundColor: 'white', padding: 10, height: 90, marginVertical: 5, width: Dimensions.get("screen").width*0.93, alignSelf: 'center', borderRadius: 10, shadowColor: 'gray', shadowOffset: {width: 2, height: 2}, shadowRadius: 5, shadowOpacity: 1,}}>
-                            <Text style={{fontWeight: 'bold'}}>{order["restaurant_name"]} </Text>
+                    return(<TouchableOpacity key={i} onPress={async ()=>{
+                        const items_list = await getOrder(order);
+                        navigation.navigate("Order Page", {order: order, items_list: items_list, status: 'Completed'})}}>
+                        <View style={{backgroundColor: '#e8ebeb', padding: 10, height: 90, marginVertical: 5, width: Dimensions.get("screen").width*0.93, alignSelf: 'center', borderRadius: 10, shadowColor: 'gray', shadowOffset: {width: 2, height: 2}, shadowRadius: 5, shadowOpacity: 1,}}>
+                            <View style={{flexDirection: 'row', width: '100%'}}>
+                                <Text style={{fontWeight: 'bold'}}>{order["restaurant_name"]}</Text>
+                            </View>
                             <View style={{flexDirection: 'row'}}>
-                                <Text>${authContext.rounded(order["subtotal"]).toFixed(2)}</Text>
+                                <Text>${(authContext.rounded((order["subtotal"]))-authContext.rounded(Number(order["discount"])).toFixed(2)+authContext.rounded(order["tip"])+authContext.rounded(order["taxes"])+authContext.rounded(Number(order["service_fee"]) + Number(order["extraStripeCharge"]))).toFixed(2)}</Text>
+                                {order["number_of_items"]===1 ? 
+                                <Text> - {order["number_of_items"]} item</Text> : <Text> - {order["number_of_items"]} items</Text>}
                             </View>
                             <View style={{flexDirection: 'row', marginTop: 15}}>
                                 <Text>{monthList[new Date(order["created_at"]["seconds"]*1000).getMonth()]} {new Date(order["created_at"]["seconds"]*1000).getDate()}</Text>
@@ -110,10 +124,10 @@ const styles = StyleSheet.create({
 
     container: {
     borderRadius: 25,
-    width: '95%',
     marginVertical: 10,
     alignSelf: 'center',
     marginTop: 50,
     zIndex: 2,
+    width: '100%'
   }
 })

@@ -10,10 +10,9 @@ export default function PaymentMethods({navigation}){
     const [creditCardModal, setCreditCardModal] = useState(false);
 
        const toggleSwitch = async () => {
-        console.log(authContext.defaultPaymentId)
         const tempBool = !authContext.drinklyCash;
         
-        await setPaymentMethod(authContext.cartSubTotal-authContext.discount, authContext.tip, authContext.taxes, !authContext.drinklyCash);
+        await authContext.updatePaymentMethod(authContext.cartSubTotal, authContext.tip, authContext.taxes, !authContext.drinklyCash, authContext.drinklyCashAmount, authContext.discount);
         await authContext.setDrinklyCash(!authContext.drinklyCash)
         await Firebase.firestore().collection('users').doc(`${authContext.user.uid}`).set({drinkly_bool: !authContext.drinklyCash}, {merge: true});
         // await authContext.setPaymentMethod(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < authContext.cartSubTotal || tempBool === false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId=== '' ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash')
@@ -107,7 +106,7 @@ export default function PaymentMethods({navigation}){
                 style={{
                 }}
                 onPress={async () => {
-                    await setPaymentMethod(authContext.cartSubTotal, authContext.tip, authContext.taxes, authContext.drinklyCash);
+                    await authContext.updatePaymentMethod(authContext.cartSubTotal, authContext.tip, authContext.taxes, authContext.drinklyCash, authContext.drinklyCashAmount, authContext.discount);
                     navigation.pop(1)
                 }}>
                 <MaterialCommunityIcons name="arrow-left" size={22}/>

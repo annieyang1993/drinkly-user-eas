@@ -22,9 +22,8 @@ export default function Checkout(){
     const [paymentModal, setPaymentModal] = useState(false)
     const tipsArray = ['No tip', '5%', '10%', '15%', '18%'];
     const [paid, setPaid] = useState(false);
-    const { confirmPayment } = useConfirmPayment();
+    const { confirmPayment} = useConfirmPayment();
     const [loading, setLoading] = useState(false);
-
     const checkIncludes = (element, array)=>{
         if (array.includes(element)){
             element = Math.random().toString(36);
@@ -47,7 +46,9 @@ export default function Checkout(){
         authContext.setPointsList(tempPoints);
     }
 
+    //
     const createCharge = async(amount) => {
+        var succeeded = false;
         const response = await fetch('https://us-central1-drinkly-user.cloudfunctions.net/createCharge', {
             method: 'POST',
             headers: {
@@ -60,11 +61,18 @@ export default function Checkout(){
                 payment_id: authContext.userData.default_payment_id
             })
         })
-        // .then(async(response)=>{
-        //     response.json().then(async(responseJson)=>{
-        //         return(responseJson.id)
-        //     })
-        // })
+        .then(async(response)=>{
+            await response.json().then(async(responseJson)=>{
+                if (responseJson.status === 'succeeded'){
+                    succeeded = true;
+                } else{
+                    succeeded = false;
+                }
+                
+            })
+        })
+
+        return succeeded;
         // const responseJson = await response.json();
         // //console.log(useConfirmPayment(JSON.stringify(responseJson)))
         // console.log(responseJson);
@@ -72,14 +80,21 @@ export default function Checkout(){
 
     const submitOrder = async () =>{
         await setLoading(true);
-        const total = Number(authContext.cartSubTotal) -Number(authContext.discount)+ Number(authContext.taxes) + Number(authContext.serviceFee) + Number(authContext.tip);
+        const total = Number(authContext.cartSubTotal) -Number(authContext.discount)+ Number(authContext.taxes) +Number(authContext.extraStripeCharge)+ Number(authContext.serviceFee) + Number(authContext.tip);
         var submitted = false;
         if (authContext.paymentMethod === 'Please select a payment method'){
             setErrorMessage('Please select a payment method before placing order.')
         } else if (authContext.paymentMethod === 'Credit card'){
             setErrorMessage('');
-            await createCharge(authContext.rounded(authContext.rounded(total).toFixed(2)*100).toFixed(0));
-            submitted=true;
+            await createCharge(authContext.rounded(authContext.rounded(total).toFixed(2)*100).toFixed(0)).then(async (bool) => {
+                if (bool === false){
+                    setErrorMessage('Apologies, this payment was not completed. Please try again.')
+                } else{
+                    submitted = true;
+                    setErrorMessage('');
+                }
+            })
+            
 
         } else if (authContext.paymentMethod === 'Drinkly Cash'){
             if ((total) > authContext.drinklyCashAmount){
@@ -140,8 +155,8 @@ export default function Checkout(){
         }
 
 
-
         const data = await Firebase.firestore().collection('users')
+        
         .doc(`${authContext.user.uid}`)
         .collection('orders')
         // .doc('orders')
@@ -169,7 +184,9 @@ export default function Checkout(){
             number_of_items: authContext.cartNumber,
             ready_by: ready_by,
             tip: authContext.tip,
-            payment_method: authContext.paymentMethod
+            payment_method: authContext.paymentMethod,
+            extraStripeCharge: authContext.extraStripeCharge,
+            restaurant_number: authContext.cartRestaurant.restaurant.phone
             
         });
 
@@ -201,10 +218,11 @@ export default function Checkout(){
             canceled: false,
             ready_by: ready_by,
             tip: authContext.tip,
-            payment_method: authContext.paymentMethod
+            payment_method: authContext.paymentMethod,
+            extraStripeCharge: authContext.extraStripeCharge,
+            user_number: authContext.userData.number
         }).then(async()=>{
         authContext.cart.map(async (cartItem, i)=>{
-            console.log(cartItem);
             Firebase.firestore().collection('restaurants').doc(`${authContext.cartRestaurant.info}`).collection(`orders`).doc(`${order_id}`).collection('items').doc(`${i}`).set({
                 name: cartItem.name,
                 description: (cartItem.details.description ? cartItem.details.description : ''),
@@ -604,7 +622,7 @@ export default function Checkout(){
                 // }
             }}>
                     
-                    {loading ? <ActivityIndicator size="small" style={{alignSelf: 'center', marginTop: 10}}/> : <Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', marginTop: 10, fontSize: 16}}>Place Order (${authContext.rounded(authContext.cartSubTotal -authContext.discount + authContext.taxes + authContext.serviceFee + authContext.tip).toFixed(2)})</Text>}
+                    {loading ? <ActivityIndicator size="small" style={{alignSelf: 'center', marginTop: 10}}/> : <Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', marginTop: 10, fontSize: 16}}>Place Order (${authContext.rounded(authContext.cartSubTotal - authContext.discount + authContext.extraStripeCharge+ authContext.taxes + authContext.serviceFee + authContext.tip).toFixed(2)})</Text>}
             </TouchableOpacity> 
             </View>
             <TouchableOpacity

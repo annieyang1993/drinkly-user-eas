@@ -31,6 +31,7 @@ export default function Cart({route}){
     const [tipIndex, setTipIndex] = useState(1)
     const [tips, setTips] = useState(0)
     const [code, setCode] = useState(authContext.discountCode)
+    const [informationModal, setInformationModal] = useState(false);
     const [discountErrorMessage, setDiscountErrorMessage] = useState('');
 
     const getSelections=async (item, j)=>{
@@ -69,17 +70,6 @@ export default function Cart({route}){
         } else if (i===4){
         await authContext.setTip(0.18 * subtotal)
         return (0.18 * subtotal)
-        }
-    }
-
-    const setPaymentMethod = async (subtotal, tip, taxes) =>{
-        const paymentMethodTemp = authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || authContext.drinklyCash === false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId === '' ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash';
-        await authContext.setPaymentMethod(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || authContext.drinklyCash === false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId === ''? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash')
-        await authContext.setIcon(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || authContext.drinklyCash === false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId === ''? '' : 'credit-card') : 'cash')
-        if (paymentMethodTemp === 'Drinkly Cash'){
-        await authContext.setServiceFee(0);
-        } else{
-        await authContext.setServiceFee(0.15);
         }
     }
 
@@ -156,7 +146,7 @@ export default function Cart({route}){
         }
 
         await setTip(Number(authContext.cartSubTotal)-Number(discountTotal), authContext.tipIndex).then(async (tip)=> {
-            setPaymentMethod(Number(authContext.cartSubTotal)-Number(discountTotal), tip, taxesTemp);
+            await authContext.updatePaymentMethod(Number(authContext.cartSubTotal), tip, taxesTemp, authContext.drinklyCash, authContext.drinklyCashAmount, Number(discountTotal));
         })
 
         
@@ -319,7 +309,7 @@ export default function Cart({route}){
             }
 
             await setTip(authContext.cartSubTotal-discount-authContext.cart[i]["quantity"]*authContext.cart[i]["total_price"], authContext.tipIndex).then(async (tip) => {
-                await setPaymentMethod(authContext.cartSubTotal-discount - authContext.cart[i]["quantity"]*authContext.cart[i]["total_price"], tip, taxesTemp);
+                await authContext.updatePaymentMethod(authContext.cartSubTotal - authContext.cart[i]["quantity"]*authContext.cart[i]["total_price"], tip, taxesTemp, authContext.drinklyCash, authContext.drinklyCashAmount, discount );
             });
 
             });
@@ -423,7 +413,6 @@ export default function Cart({route}){
             <View style={{paddingHorizontal: 10}}>
                 <View style={{flexDirection: 'row', width: '100%', marginTop: 10, color: 'gray'}}>
                     <Text style={{ marginTop: 20, color: 'gray'}}>Subtotal</Text>
-                    <MaterialCommunityIcons name="information-outline" style={{marginTop: 20, color: 'gray', marginLeft: 10}}/>
                     <Text style={{ marginTop: 20, position: 'absolute', right: 0, color: 'gray'}}>${authContext.rounded(authContext.cartSubTotal).toFixed(2)}</Text>
                 </View>
 
@@ -434,7 +423,6 @@ export default function Cart({route}){
                 
                 <View style={{flexDirection: 'row', width: '100%', marginTop: 5, marginBottom: 10, color: 'gray'}}>
                     <Text style={{color: 'gray'}}>Subtotal</Text>
-                    <MaterialCommunityIcons name="information-outline" style={{color: 'gray', marginLeft: 10}}/>
                     <Text style={{position: 'absolute', right: 0, color: 'gray'}}>${authContext.rounded(authContext.rounded(authContext.cartSubTotal).toFixed(2)-authContext.rounded(Number(authContext.discount)).toFixed(2)).toFixed(2)}</Text>
                 </View>
                           
@@ -450,25 +438,23 @@ export default function Cart({route}){
                 <View style={{flexDirection: 'row', width: '100%', color: 'gray'}}>
                     
                     <Text style={{marginTop: 5, color: 'gray'}}>Estimated taxes</Text>
-                    <MaterialCommunityIcons name="information-outline" style={{marginTop: 5, color: 'gray', marginLeft: 10}}/>
                     <Text style={{marginTop: 5, color: 'gray', position: 'absolute', right: 0}}>${authContext.rounded(authContext.taxes).toFixed(2)}</Text> 
                 </View>
-                <View style={{flexDirection: 'row', width: '100%', color: 'gray'}}>
+                <TouchableOpacity onPress = {()=>{setInformationModal(true)}} style={{flexDirection: 'row', width: '100%', color: 'gray'}}>
                     <Text style={{marginTop: 5, color: 'gray'}}>Service fee</Text>
                     <MaterialCommunityIcons name="information-outline" style={{marginTop: 5, color: 'gray', marginLeft: 10}}/>
-                    <Text style={{marginTop: 5, color: 'gray', position: 'absolute', right: 0}}>${authContext.rounded(authContext.serviceFee).toFixed(2)}</Text>
-                </View>
+                    <Text style={{marginTop: 5, color: 'gray', position: 'absolute', right: 0}}>${authContext.rounded(Number(authContext.rounded(authContext.serviceFee).toFixed(2))+ Number(authContext.rounded(authContext.extraStripeCharge).toFixed(2))).toFixed(2)}</Text>
+                </TouchableOpacity>
 
                 <View style={{flexDirection: 'row', width: '100%', color: 'gray', paddingBottom: 10}}>
                     <Text style={{marginTop: 5, color: 'gray'}}>Tip</Text>
-                    <MaterialCommunityIcons name="information-outline" style={{marginTop: 5, color: 'gray', marginLeft: 10}}/>
                     <Text style={{marginTop: 5, color: 'gray', position: 'absolute', right: 0}}>${authContext.rounded(authContext.tip).toFixed(2)}</Text>
                 </View>
 
 
                 <View style={{flexDirection: 'row', width: '100%', marginBottom: 5, borderTopWidth: 0.5, borderTopColor: 'gray', }}>
                     <Text style={{fontWeight: 'bold', marginTop: 5}}>Total</Text>
-                    <Text style={{fontWeight: 'bold', marginTop: 5, position: 'absolute', right: 0}}>${authContext.rounded(authContext.cartSubTotal - authContext.discount+ authContext.taxes + authContext.serviceFee + authContext.tip).toFixed(2)}</Text>
+                    <Text style={{fontWeight: 'bold', marginTop: 5, position: 'absolute', right: 0}}>${authContext.rounded(authContext.cartSubTotal - authContext.discount+ authContext.taxes + authContext.serviceFee + authContext.tip+authContext.extraStripeCharge).toFixed(2)}</Text>
                 </View> 
             </View>
 
@@ -574,6 +560,41 @@ export default function Cart({route}){
         
         </ScrollView> 
 
+        <Modal visible={informationModal} transparent={true} animationType='slide'>
+                <View style={{padding: 20, width: '95%', backgroundColor: 'white', position: 'absolute', bottom: '50%', height: 150, alignSelf: 'center', borderRadius: 15, shadowColor: 'gray', shadowOffset: {width: 2, height: 2}, shadowRadius: 5, shadowOpacity: 0.4}}>
+                        <Text style={{textAlign: 'center', marginTop: 20, fontSize: 13}}>A small fee used to help pay credit card processing fees, as well as to help run the Drinkly App. This fee will be set to $0 when paying with Drinkly Cash.</Text>
+                      <View style={{flexDirection: 'row', alignSelf: 'center', marginTop: 10}}>
+                        
+                        <TouchableOpacity onPress={()=>{setInformationModal(false)}}><View style={{marginHorizontal: 10, padding: 5, backgroundColor: '#119aa3', borderRadius: 5, paddingHorizontal: 10}}><Text style={{color: 'white', fontWeight: 'bold'}}>OK</Text></View></TouchableOpacity>
+                        </View>
+               
+
+                <TouchableOpacity
+                style={{backgroundColor: 'white',
+                borderRadius: 10,
+                width: 20,
+                height: 20,
+                position: 'absolute',
+                marginTop: 15,
+                marginHorizontal: 20,
+                color: 'gray',
+                zIndex: 50,
+                }}
+                onPress={() => {
+                    setInformationModal(false);
+                    //navigation.navigate(authContext.prevScreen, authContext.prevScreenParams)
+                }}>
+                <MaterialCommunityIcons name="close" size={22}/>
+            </TouchableOpacity> 
+
+                </View>
+
+
+            
+                    
+
+            </Modal>
+
         </View>
         <TouchableOpacity
             style={{backgroundColor: 'white',
@@ -602,7 +623,7 @@ export default function Cart({route}){
                     shadowRadius: 3, 
                     shadowOpacity: 0.8, paddingVertical: 11, paddingHorizontal: 30, backgroundColor: '#119aa3', borderRadius: 20, textAlign: 'center'}} 
         onPress={()=>checkContinue()}>
-                <Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', fontSize: 16}}>Continue (${authContext.rounded(authContext.cartSubTotal - authContext.discount+ authContext.taxes + authContext.serviceFee + authContext.tip).toFixed(2)})</Text>
+                <Text style={{textAlign: 'center', fontWeight: 'bold', color: 'white', fontSize: 16}}>Continue (${authContext.rounded(authContext.cartSubTotal - authContext.discount+ authContext.taxes + authContext.extraStripeCharge+ authContext.serviceFee + authContext.tip).toFixed(2)})</Text>
         </TouchableOpacity> 
         </View>
 

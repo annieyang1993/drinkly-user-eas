@@ -22,18 +22,6 @@ export default function CardPage({route}){
     const createEphemeralKey = functions.httpsCallable('createEphemeralKey')
     const { user } = useContext(AuthenticatedUserContext);
 
-    const setPaymentMethod = async (subtotal, tip, taxes) =>{
-        const paymentMethodTemp = authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || authContext.drinklyCash === false ? 'Please select a payment method' : 'Drinkly Cash';
-        await authContext.setPaymentMethod(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || authContext.drinklyCash === false ? 'Please select a payment method' : 'Drinkly Cash')
-        await authContext.setIcon(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || authContext.drinklyCash === false ? '' : 'cash')
-        if (paymentMethodTemp === 'Drinkly Cash'){
-        await authContext.setServiceFee(0);
-        } else{
-        await authContext.setServiceFee(0.15);
-        }
-
-    }
-
     const deleteCard = async() =>{
         await Firebase.firestore().collection('users').doc(user.uid).collection('payment_methods').doc(`${route.params.card.brand}-${route.params.card.expiryYear}-${route.params.card.lastFour}`).delete();
         const paymentsTemp = authContext.paymentMethods.map((x)=>x);
@@ -50,15 +38,17 @@ export default function CardPage({route}){
             await Firebase.firestore().collection('users').doc(authContext.user.uid).set({
                 default_payment_id: null,
                 default_brand: null,
-                default_lastFour: null
+                default_lastFour: null,
+                default_payment_country: null
             }, {merge: true});
             const userDataTemp = authContext.userData;
             delete userDataTemp["default_payment_id"];
             delete userDataTemp["default_brand"];
             delete userDataTemp["default_lastFour"];
+            delete userDataTemp["default_payment_country"];
             await authContext.setUserData(userDataTemp);
             await authContext.setDefaultPaymentId('');
-            await setPaymentMethod(authContext.cartSubTotal, authContext.tip, authContext.taxes);
+            await authContext.updatePaymentMethod(authContext.cartSubTotal, authContext.tip, authContext.taxes, authContext.drinklyCash, authContext.drinklyCashAmount, authContext.discount);
         }
     }
 
@@ -66,13 +56,15 @@ export default function CardPage({route}){
         await Firebase.firestore().collection('users').doc(authContext.user.uid).set({
                 default_payment_id: route.params.card.payment_id,
                 default_brand: route.params.card.brand,
-                default_lastFour: route.params.card.lastFour
+                default_lastFour: route.params.card.lastFour,
+                default_payment_country: route.params.card.country
             }, {merge: true});
 
         const userDataTemp = authContext.userData;
         userDataTemp["default_payment_id"] = route.params.card.payment_id;
         userDataTemp["default_brand"] = route.params.card.brand;
         userDataTemp["default_lastFour"]  = route.params.card.lastFour;
+        userDataTemp["default_payment_country"] = route.params.card.country;
         await authContext.setUserData(userDataTemp);
         await authContext.setDefaultPaymentId(route.params.card.payment_id);
 

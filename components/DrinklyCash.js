@@ -38,7 +38,7 @@ export default function DrinklyCash({route}){
     const toggleSwitch = async () => {
         const tempBool = !authContext.drinklyCash;
         
-        await setPaymentMethod(authContext.cartSubTotal-authContext.discount, authContext.tip, authContext.taxes, !authContext.drinklyCash, authContext.drinklyCashAmount);
+        await authContext.updatePaymentMethod(authContext.cartSubTotal, authContext.tip, authContext.taxes, !authContext.drinklyCash, authContext.drinklyCashAmount, authContext.discount);
         await authContext.setDrinklyCash(!authContext.drinklyCash)
         await Firebase.firestore().collection('users').doc(`${authContext.user.uid}`).set({drinkly_bool: !authContext.drinklyCash}, {merge: true});
         // await authContext.setPaymentMethod(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < authContext.cartSubTotal || tempBool === false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId=== '' ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash')
@@ -48,18 +48,6 @@ export default function DrinklyCash({route}){
         // } else{
         //     authContext.setServiceFee(0.15);
         // }
-    }
-
-    const setPaymentMethod = async (subtotal, tip, taxes, bool, drinklyCashAmountTemp) =>{
-        const paymentMethodTemp = drinklyCashAmountTemp===undefined || drinklyCashAmountTemp < (subtotal + tip + taxes) || bool === false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId === '' ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash';
-        await authContext.setPaymentMethod(drinklyCashAmountTemp===undefined || drinklyCashAmountTemp < (subtotal + tip + taxes) || bool === false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId === ''? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash')
-        await authContext.setIcon(drinklyCashAmountTemp===undefined || drinklyCashAmountTemp < (subtotal + tip + taxes) || bool === false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId === ''? '' : 'credit-card') : 'cash')
-        if (paymentMethodTemp === 'Drinkly Cash'){
-        await authContext.setServiceFee(0);
-        } else{
-        await authContext.setServiceFee(0.15);
-        }
-
     }
 
     const addCash = async() =>{
@@ -72,7 +60,7 @@ export default function DrinklyCash({route}){
                 setErrorMessage(`Please enter an amount less than $1000.`);
                 return
             }
-            else{check
+            else{
                 setErrorMessage(``);
             }
         }
@@ -81,17 +69,24 @@ export default function DrinklyCash({route}){
             setPaymentModal(true);
             return
         } else{
-            createCharge();
-            const drinklyCashTemp = authContext.userData.drinkly_cash === null || authContext.userData.drinkly_cash === undefined ? 0 : Number(authContext.userData.drinkly_cash);
-            const addition = authContext.rounded(amountIndex === -1 ? Number(amount) : Number(amounts[amountIndex]));
-            const sum = drinklyCashTemp + addition;
-            await Firebase.firestore().collection('users').doc(authContext.user.uid).set({
-                drinkly_cash: authContext.rounded(sum).toFixed(2)
-            }, {merge: true});
-            const userDataTemp = authContext.userData;
-            userDataTemp["drinkly_cash"] = sum;
-            authContext.setDrinklyCashAmount(sum);
-            await authContext.setUserData(userDataTemp);
+            await createCharge().then(async (bool)=>{
+                if (bool === true){
+                    setErrorMessage('')
+                    const drinklyCashTemp = authContext.userData.drinkly_cash === null || authContext.userData.drinkly_cash === undefined ? 0 : Number(authContext.userData.drinkly_cash);
+                    const addition = authContext.rounded(amountIndex === -1 ? Number(amount) : Number(amounts[amountIndex]));
+                    const sum = drinklyCashTemp + addition;
+                    await Firebase.firestore().collection('users').doc(authContext.user.uid).set({
+                        drinkly_cash: authContext.rounded(sum).toFixed(2)
+                    }, {merge: true});
+                    const userDataTemp = authContext.userData;
+                    userDataTemp["drinkly_cash"] = sum;
+                    authContext.setDrinklyCashAmount(sum);
+                    await authContext.setUserData(userDataTemp);
+                } else{
+                    setErrorMessage('Apologies, this payment was not completed. Please try again.')
+                }
+            });
+            
         }
         const drinklyCashTemp = authContext.userData.drinkly_cash === null || authContext.userData.drinkly_cash === undefined ? 0 : Number(authContext.userData.drinkly_cash);
         const addition = authContext.rounded(amountIndex === -1 ? Number(amount) : Number(amounts[amountIndex]));
@@ -125,6 +120,7 @@ export default function DrinklyCash({route}){
     }
 
     const createCharge = async() => {
+        var succeeded = false;
         const response = await fetch('https://us-central1-drinkly-user.cloudfunctions.net/createCharge', {
             method: 'POST',
             headers: {
@@ -137,7 +133,18 @@ export default function DrinklyCash({route}){
                 payment_id: authContext.userData.default_payment_id
             })
         })
-        const responseJson = await response.json();
+        .then(async(response)=>{
+            await response.json().then(async(responseJson)=>{
+                if (responseJson.status === 'succeeded'){
+                    succeeded = true;
+                } else{
+                    succeeded = false;
+                }
+                
+            })
+        })
+
+        return succeeded;
     }
 
 
@@ -161,6 +168,7 @@ export default function DrinklyCash({route}){
             type: 'Card',
             billingDetails: {cardholder}
         })
+        const tokenDetails = await createToken({card: cardDetails});
         if (error){
             setErrorBool(true);
             setErrorMessageCard('Card error, please try again')
@@ -173,7 +181,8 @@ export default function DrinklyCash({route}){
                 expiryMonth: cardDetails.expiryMonth,
                 expiryYear: cardDetails.expiryYear,
                 postalCode: cardDetails.postalCode,
-                lastFour: cardDetails.last4
+                lastFour: cardDetails.last4,
+                country: tokenDetails.token.card.country
          
             })
             const paymentsTemp = authContext.paymentMethods.map((x)=>x);
@@ -183,7 +192,8 @@ export default function DrinklyCash({route}){
                 expiryMonth: cardDetails.expiryMonth,
                 expiryYear: cardDetails.expiryYear,
                 postalCode: cardDetails.postalCode,
-                lastFour: cardDetails.last4
+                lastFour: cardDetails.last4,
+                country: tokenDetails.token.card.country
             })
 
             authContext.setPaymentMethods(paymentsTemp);
@@ -191,13 +201,15 @@ export default function DrinklyCash({route}){
             await Firebase.firestore().collection('users').doc(authContext.user.uid).set({
                 default_payment_id: setupIntent.paymentMethodId,
                 default_brand: cardDetails.brand,
-                default_lastFour: cardDetails.last4
+                default_lastFour: cardDetails.last4,
+                default_payment_country: tokenDetails.token.card.country
             }, {merge: true});
 
             const userDataTemp = authContext.userData;
             userDataTemp["default_payment_id"] = setupIntent.paymentMethodId;
             userDataTemp["default_brand"] = cardDetails.brand;
-            userDataTemp["default_lastFour"]  = cardDetails.last4
+            userDataTemp["default_lastFour"]  = cardDetails.last4;
+            userDataTemp["default_payment_country"] = tokenDetails.token.card.country;
             await authContext.setUserData(userDataTemp);
             await authContext.setDefaultPaymentId(setupIntent.paymentMethodId);
             await setCardDetails();
@@ -283,7 +295,7 @@ export default function DrinklyCash({route}){
                     
 
 
-            <TouchableOpacity style={{width: '80%', alignSelf: 'center' , paddingVertical: 11, paddingHorizontal: 30, backgroundColor: '#119aa3', borderRadius: 5, textAlign: 'center'}} 
+            <TouchableOpacity disabled = {addingCash} style={{width: '80%', alignSelf: 'center' , paddingVertical: 11, paddingHorizontal: 30, backgroundColor: '#119aa3', borderRadius: 5, textAlign: 'center'}} 
                         onPress={()=>{
                             addCash();
                             // if (authContext.userData["default_card"]===undefined){

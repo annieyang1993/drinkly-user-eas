@@ -5,7 +5,7 @@ import { NavigationContainer, useNavigation } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ItemModal from '../pages/ItemModal'
 import {Firebase, db, functions} from '../config/firebase';
-import {Stripe, CardField, StripeProvider,useConfirmPayment, useConfirmSetupIntent, createToken, createPaymentMethod} from '@stripe/stripe-react-native'
+import {Stripe, CardField, StripeProvider, useConfirmPayment, useConfirmSetupIntent, createToken, createPaymentMethod} from '@stripe/stripe-react-native'
 import { AuthenticatedUserContext } from '../navigation/AuthenticatedUserProvider';
 import PaymentMethods from '../pages/PaymentsList';
 
@@ -76,23 +76,12 @@ export default function Payments(){
 
     //Create setup intent on backend and returns the client secret to use within confirmSetupIntent
 
-    const setPaymentMethod = async (subtotal, tip, taxes, bool) =>{
-        const paymentMethodTemp = authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || bool=== false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId === '' ? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash';
-        await authContext.setPaymentMethod(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || bool=== false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId === ''? 'Please select a payment method' : 'Credit card') : 'Drinkly Cash')
-        await authContext.setIcon(authContext.drinklyCashAmount===undefined || authContext.drinklyCashAmount < (subtotal + tip + taxes) || bool=== false ? (authContext.defaultPaymentId=== undefined || authContext.defaultPaymentId === ''? '' : 'credit-card') : 'cash')
-        if (paymentMethodTemp === 'Drinkly Cash'){
-        await authContext.setServiceFee(0);
-        } else{
-        await authContext.setServiceFee(0.15);
-        }
-
-    }
 
     const getClientSecret = async () => {
         await setLoading(true);
         setErrorBool(false);
         
-
+        //
         const response = await fetch('https://us-central1-drinkly-user.cloudfunctions.net/createSetupIntent', {
             method: 'POST',
             headers: {
@@ -108,6 +97,8 @@ export default function Payments(){
             type: 'Card',
             billingDetails: {cardholder}
         })
+        
+        const tokenDetails = await createToken({card: cardDetails});
         if (error){
             await setStatus(1);
             await setLoading(false);
@@ -120,7 +111,8 @@ export default function Payments(){
                 expiryMonth: cardDetails.expiryMonth,
                 expiryYear: cardDetails.expiryYear,
                 postalCode: cardDetails.postalCode,
-                lastFour: cardDetails.last4
+                lastFour: cardDetails.last4,
+                country: tokenDetails.token.card.country
          
             })
             const paymentsTemp = authContext.paymentMethods.map((x)=>x);
@@ -130,7 +122,8 @@ export default function Payments(){
                 expiryMonth: cardDetails.expiryMonth,
                 expiryYear: cardDetails.expiryYear,
                 postalCode: cardDetails.postalCode,
-                lastFour: cardDetails.last4
+                lastFour: cardDetails.last4,
+                country: tokenDetails.token.card.country
             })
 
             authContext.setPaymentMethods(paymentsTemp);
@@ -138,13 +131,15 @@ export default function Payments(){
             await Firebase.firestore().collection('users').doc(authContext.user.uid).set({
                 default_payment_id: setupIntent.paymentMethodId,
                 default_brand: cardDetails.brand,
-                default_lastFour: cardDetails.last4
+                default_lastFour: cardDetails.last4,
+                default_payment_country: tokenDetails.token.card.country
             }, {merge: true});
 
             const userDataTemp = authContext.userData;
             userDataTemp["default_payment_id"] = setupIntent.paymentMethodId;
             userDataTemp["default_brand"] = cardDetails.brand;
-            userDataTemp["default_lastFour"]  = cardDetails.last4
+            userDataTemp["default_lastFour"]  = cardDetails.last4;
+            userDataTemp["default_payment_country"] = tokenDetails.token.card.country;
             await authContext.setUserData(userDataTemp);
             await authContext.setDefaultPaymentId(setupIntent.paymentMethodId);
             await setLoading(false);

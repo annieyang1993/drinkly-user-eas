@@ -67,12 +67,9 @@ export default function Receipt(){
                 }}
                 onPress={() => {
                     navigation.navigate("Orders");
-                    
                     authContext.setCartBool(false);
                     authContext.updateCart([]);
                     authContext.setItemTotals([]);
-                    // authContext.setWeekDayArray(['Today']);
-                    // authContext.setDateTimeArray({});
                     authContext.setCartRestaurantHours({});
                     authContext.setBeforeOpen(false);
                     authContext.setAfterClose(false);
@@ -85,11 +82,9 @@ export default function Receipt(){
                     authContext.setDiscountCode('');
                     authContext.setDiscount(0);
                     authContext.setDiscountBool(false);
-                    authContext.setTipIndex(1)
-        
-
-                    getOrders();
-
+                    authContext.setTipIndex(1);
+                    authContext.setExtraStripeCharge(0);
+                    //getOrders();
                     navigation.dispatch(CommonActions.reset({index: 0, routes:[{name: 'Search2'}]}))
                     
                 }}>

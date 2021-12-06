@@ -74,7 +74,7 @@ export default function ItemModal({item, selections}){
         taxesTemp = ((Number(preferenceSelections["quantity"])*Number(itemTotal))*0.13);
       }
       await setTip(Number(preferenceSelections["quantity"]*Number(itemTotal))).then(async (tip) => {
-        await setPaymentMethod(Number(preferenceSelections["quantity"]*Number(itemTotal)), tip, taxesTemp);
+        await authContext.updatePaymentMethod(Number(preferenceSelections["quantity"]*Number(itemTotal)), tip, taxesTemp, authContext.drinklyCash, authContext.drinklyCashAmount, 0);
       });
       authContext.updateCartRestaurant({info: item["restaurant_id"], restaurant: {name: item["restaurant_name"]}})
       setModalVisibles()
@@ -149,7 +149,7 @@ export default function ItemModal({item, selections}){
         taxesTemp = (Number(preferenceSelections["quantity"])*Number(itemTotal)*0.13);
       }
       await setTip(Number(preferenceSelections["quantity"])*Number(itemTotal)).then(async (tip) => {
-        await setPaymentMethod(Number(preferenceSelections["quantity"])*Number(itemTotal), tip, taxesTemp);
+        await authContext.updatePaymentMethod(Number(preferenceSelections["quantity"])*Number(itemTotal), tip, taxesTemp, authContext.drinklyCash, authContext.drinklyCashAmount, 0);
       });
       // navigation.navigate("Search2", {screen: route.params.restaurant["name"], params: {restaurant: route.params.restaurant, itemsArr: itemArr, modals: modalsTemp}})
     

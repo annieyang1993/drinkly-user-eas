@@ -123,7 +123,7 @@ export default function ItemModal({item, selections, preferences, itemQuantity, 
           taxesTemp = ((Number(cartSubTotalTemp)-Number(discount))*0.13)
         }
         await setTip((Number(cartSubTotalTemp)-Number(discount))).then(async (tip) => {
-        await setPaymentMethod((Number(cartSubTotalTemp)-Number(discount)), tip, taxesTemp);
+        await authContext.updatePaymentMethod((Number(cartSubTotalTemp)), tip, taxesTemp, authContext.drinklyCash, authContext.drinklyCashAmount, Number(discount));
         });
         })
         authContext.setEditItem(false);
