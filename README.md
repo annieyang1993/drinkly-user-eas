@@ -1,4 +1,5 @@
 Drinkly Mobile Platform
+
 Drinkly is a 3-app platform where users can find local cafes, order items, track their rewards and earn discount codes. 
 Cafes can manage and fulfill orders, view daily order summaries, manage their store details (i.e. store hours, description, location), and update/create menu items. 
 
@@ -10,6 +11,7 @@ Link to Order Management Repo: https://github.com/annieyang1993/drinkly-order-ma
 Link to Store Management Repo: https://github.com/annieyang1993/drinkly-store-management-updated
 
 Features
+
 1. Secure user authentication using Firebase Authentication.
 2. Users are able to find local cafes and see walking distance to the cafe.
 3. Users are able to save their favorite cafes.
@@ -44,6 +46,7 @@ Features
 <img width="343" alt="Screen Shot 2022-03-08 at 10 03 01 PM" src="https://user-images.githubusercontent.com/82074442/157364774-ed397442-b53f-450f-9c4f-927bba170cc5.png">
 
 Technologies
+
 The technologies used were:
 
 React Native on the frontend
