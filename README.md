@@ -4,7 +4,9 @@ Cafes can manage and fulfill orders, view daily order summaries, manage their st
 
 To request a demo on iOS TestFlight, please email annieqiyang@gmail.com.
 
+
 Link to Order Management Repo: https://github.com/annieyang1993/drinkly-order-management
+
 Link to Store Management Repo: https://github.com/annieyang1993/drinkly-store-management-updated
 
 Features
