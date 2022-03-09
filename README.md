@@ -31,7 +31,7 @@ Features
 3. View Menus
 <img width="309" alt="4" src="https://user-images.githubusercontent.com/82074442/157364156-cd7b8fef-bcea-40cb-b4aa-aa2b3356b0a7.png">
 
-4. Order Ahead, Set Pickup Time, and Enter Payment Method
+4. Order Ahead, Set A Pickup Time Based on the Store's Operating Hours, and Enter A Payment Method Using the Stripe API
 <img width="338" alt="Screen Shot 2022-03-08 at 10 01 52 PM" src="https://user-images.githubusercontent.com/82074442/157364710-267a3129-314e-4f04-8fdb-f3290d9ed971.png">
 <img width="309" alt="3" src="https://user-images.githubusercontent.com/82074442/157364224-9a74cef1-7478-4fc4-a8bb-34aa70297199.png">
 
